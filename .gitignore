@@ -1,0 +1,8 @@
+/vendor
+/node_modules
+.env
+.DS_Store
+Thumbs.db
+/uploads/properties/*
+!/uploads/properties/.gitkeep
+/stitch_real_estate_management_system
