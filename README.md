@@ -232,4 +232,3 @@ For support or inquiries:
 
 ---
 
-**Made with ❤️ by Prime Estate Development Team**
