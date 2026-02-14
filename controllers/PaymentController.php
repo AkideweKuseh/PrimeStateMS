@@ -34,6 +34,13 @@ class PaymentController {
             }
         }
     }
+
+    public function index() {
+        Auth::requireAdmin();
+        $payment = new Payment();
+        $payments = $payment->readAll();
+        require_once __DIR__ . '/../views/admin/payments/index.php';
+    }
 }
 
 if (isset($_GET['action'])) {

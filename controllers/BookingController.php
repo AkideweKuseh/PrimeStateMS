@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../models/Booking.php';
 require_once __DIR__ . '/../core/Helper.php';
 require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../models/Payment.php';
 
 /**
  * BookingController
@@ -11,6 +12,21 @@ require_once __DIR__ . '/../core/Auth.php';
  */
 
 class BookingController {
+    public function index() {
+        Auth::requireAdmin();
+        
+        $filters = [
+            'status' => $_GET['status'] ?? '',
+            'start_date' => $_GET['start_date'] ?? '',
+            'end_date' => $_GET['end_date'] ?? ''
+        ];
+
+        $bookingModel = new Booking();
+        $bookings = $bookingModel->readAll($filters);
+        
+        require_once __DIR__ . '/../views/admin/bookings/index.php';
+    }
+
     public function book() {
         Auth::requireLogin();
 
@@ -81,6 +97,85 @@ class BookingController {
             }
         }
         Helper::redirect('views/client/bookings.php'); // Redirect back to client bookings
+    }
+
+    public function payment() {
+        Auth::requireLogin();
+        if (isset($_GET['booking_id'])) {
+            require_once __DIR__ . '/../views/client/payment.php';
+        } else {
+            Helper::redirect('views/client/bookings.php');
+        }
+    }
+
+    public function processPayment() {
+        Auth::requireLogin();
+        
+        $isJsonRequest = (
+            (!empty($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) ||
+            (!empty($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false)
+        );
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['booking_id'])) {
+            $bookingId = $_POST['booking_id'];
+            $userId = Auth::id();
+            
+            $bookingModel = new Booking();
+            $booking = $bookingModel->readOne($bookingId);
+
+            if ($booking && $booking['client_id'] == $userId && $booking['booking_status'] == 'pending') {
+                $paymentModel = new Payment();
+                $paymentData = [
+                    'booking_id' => $bookingId,
+                    'amount' => $booking['total_amount'],
+                    'payment_method' => $_POST['payment_method'] ?? 'Mock Gateway',
+                    'transaction_id' => 'TXN-' . strtoupper(uniqid()),
+                    'status' => 'completed',
+                    'user_id' => $userId, // Used for recorded_by
+                    'notes' => 'Payment via Mock Gateway'
+                ];
+
+                if ($paymentModel->create($paymentData)) {
+                    // Update booking status to confirmed
+                    if ($bookingModel->confirm($bookingId)) {
+                        if ($isJsonRequest) {
+                            header('Content-Type: application/json');
+                            echo json_encode(['success' => true, 'message' => 'Payment successful']);
+                            exit;
+                        }
+                        Helper::setFlash('success', 'Payment successful! Booking confirmed.');
+                    } else {
+                        if ($isJsonRequest) {
+                            header('Content-Type: application/json');
+                            echo json_encode(['success' => false, 'message' => 'Booking confirmation failed']);
+                            exit;
+                        }
+                        Helper::setFlash('warning', 'Payment recorded but booking status update failed.');
+                    }
+                } else {
+                    if ($isJsonRequest) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['success' => false, 'message' => 'Payment creation failed']);
+                        exit;
+                    }
+                    Helper::setFlash('error', 'Payment processing failed.');
+                }
+            } else {
+                if ($isJsonRequest) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Invalid booking or payment not allowed']);
+                    exit;
+                }
+                Helper::setFlash('error', 'Invalid booking or payment not allowed.');
+            }
+        }
+        
+        if ($isJsonRequest) {
+             header('Content-Type: application/json');
+             echo json_encode(['success' => false, 'message' => 'Invalid request']);
+             exit;
+        }
+        Helper::redirect('views/client/bookings.php');
     }
 }
 

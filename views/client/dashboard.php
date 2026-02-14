@@ -2,9 +2,15 @@
 require_once __DIR__ . '/../layouts/client-sidebar.php'; 
 require_once __DIR__ . '/../../models/Booking.php';
 require_once __DIR__ . '/../../models/Property.php'; // For recommended properties
+require_once __DIR__ . '/../../models/SavedProperty.php';
+require_once __DIR__ . '/../../models/Payment.php';
 
 $bookingModel = new Booking();
 $propertyModel = new Property();
+$savedPropertyModel = new SavedProperty();
+$paymentModel = new Payment();
+
+$savedPropertyIds = $savedPropertyModel->getSavedPropertyIds($_SESSION['user_id']);
 
 // Fetch Client Bookings
 $myBookingsStmt = $bookingModel->readByClient($_SESSION['user_id']);
@@ -17,6 +23,9 @@ foreach($allBookings as $b) {
         $activeBookingsCount++;
     }
 }
+
+// Calculate Total Payments
+$totalPayments = $paymentModel->getTotalPaymentsByUser($_SESSION['user_id']);
 
 // Fetch Recommended Properties (Just fetch recent 3 for now)
 $recommendedProps = $propertyModel->read()->fetchAll(PDO::FETCH_ASSOC); // Fetch all then slice
@@ -57,8 +66,8 @@ $recommendedProps = array_slice($recommendedProps, 0, 3);
             <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-between group hover:border-primary/30 transition-colors">
                 <div>
                     <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Payments</p>
-                    <p class="text-3xl font-bold text-slate-900 dark:text-white mt-1">GHS 0.00</p>
-                    <p class="text-xs text-slate-400 mt-2">No payments recorded</p>
+                    <p class="text-3xl font-bold text-slate-900 dark:text-white mt-1"><?php echo Helper::formatCurrency($totalPayments); ?></p>
+                    <p class="text-xs text-slate-400 mt-2">Lifetime total</p>
                 </div>
                 <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary transition-colors">
                     <span class="material-symbols-outlined text-primary text-2xl group-hover:text-white transition-colors">account_balance_wallet</span>
@@ -91,9 +100,15 @@ $recommendedProps = array_slice($recommendedProps, 0, 3);
                         <div class="absolute top-3 left-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-wide">
                             <?php echo $prop['listing_type']; ?>
                         </div>
-                        <button class="absolute top-3 right-3 p-1.5 bg-white/50 hover:bg-white rounded-full transition-colors text-slate-700 z-20 relative">
-                            <span class="material-symbols-outlined text-sm">favorite_border</span>
-                        </button>
+                        <?php 
+                        $isSaved = in_array($prop['id'], $savedPropertyIds); 
+                        ?>
+                        <form action="<?php echo BASE_URL; ?>controllers/SavedPropertyController.php?action=toggle" method="POST" class="absolute top-3 right-3 z-20">
+                            <input type="hidden" name="property_id" value="<?php echo $prop['id']; ?>">
+                            <button type="submit" class="p-1.5 bg-white/50 hover:bg-white rounded-full transition-colors <?php echo $isSaved ? 'text-red-500' : 'text-slate-700'; ?> shadow-sm" title="<?php echo $isSaved ? 'Remove from Saved' : 'Save Property'; ?>">
+                                <span class="material-symbols-outlined text-sm"><?php echo $isSaved ? 'favorite' : 'favorite_border'; ?></span>
+                            </button>
+                        </form>
                     </div>
                     <div class="p-4">
                         <div class="mb-2">

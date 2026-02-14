@@ -1,11 +1,14 @@
 <?php 
 require_once __DIR__ . '/../layouts/client-sidebar.php'; 
-require_once __DIR__ . '/../../models/Property.php';
+require_once __DIR__ . '/../../models/SavedProperty.php';
+require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../core/Helper.php';
 
-// Mocking saved properties for now (fetching all properties to simulate)
-$propertyModel = new Property();
-$properties = $propertyModel->read(); 
+Auth::requireLogin();
+$user_id = Auth::user()['id'];
+
+$savedPropertyModel = new SavedProperty();
+$properties = $savedPropertyModel->readByUser($user_id); 
 ?>
 
 <!-- Page Header -->
@@ -20,8 +23,6 @@ $properties = $propertyModel->read();
     <?php 
     if($properties->rowCount() > 0):
         while($property = $properties->fetch(PDO::FETCH_ASSOC)):
-            // Verify if this is actually a "saved" property in real app logic. 
-            // For now, illustrating the UI with the fetched properties.
     ?>
     <div class="bg-white dark:bg-[#1a1625] rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group">
         <div class="relative h-48 overflow-hidden">
@@ -34,9 +35,13 @@ $properties = $propertyModel->read();
                      alt="<?php echo $property['title']; ?>"
                      onerror="this.src='https://via.placeholder.com/600x400?text=Property+Image'">
             </a>
-            <button class="absolute top-3 right-3 p-2 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black/70 rounded-full text-red-500 transition-colors shadow-sm" title="Remove from Saved">
-                <span class="material-symbols-outlined text-sm">favorite</span>
-            </button>
+            
+            <form action="<?php echo BASE_URL; ?>controllers/SavedPropertyController.php?action=toggle" method="POST" class="absolute top-3 right-3 z-20">
+                <input type="hidden" name="property_id" value="<?php echo $property['id']; ?>">
+                <button type="submit" class="p-2 bg-white/80 dark:bg-black/50 hover:bg-white dark:hover:bg-black/70 rounded-full text-red-500 transition-colors shadow-sm" title="Remove from Saved">
+                    <span class="material-symbols-outlined text-sm">favorite</span>
+                </button>
+            </form>
         </div>
         <div class="p-5 flex-1 flex flex-col">
             <div class="flex justify-between items-start mb-2">
@@ -63,7 +68,7 @@ $properties = $propertyModel->read();
                 </div>
                 <div class="flex items-center gap-1">
                     <span class="material-symbols-outlined text-lg text-slate-400">square_foot</span>
-                    <span class="font-semibold"><?php echo $property['size_sqft']; ?></span> sqft
+                    <span class="font-semibold"><?php echo $property['area_sqft']; ?></span> sqft
                 </div>
             </div>
         </div>

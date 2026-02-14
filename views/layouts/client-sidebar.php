@@ -106,13 +106,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <span class="material-symbols-outlined mr-3 <?php echo $current_page == 'bookings.php' ? 'text-white/90' : 'text-slate-400 group-hover:text-primary transition-colors'; ?>">event_available</span>
                 My Bookings
             </a>
-             <a href="#" class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-colors">
-                <span class="material-symbols-outlined mr-3 text-slate-400 group-hover:text-primary transition-colors">receipt_long</span>
+            <a href="<?php echo BASE_URL; ?>views/client/payments.php" class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors <?php echo $current_page == 'payments.php' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary'; ?>">
+                <span class="material-symbols-outlined mr-3 <?php echo $current_page == 'payments.php' ? 'text-white/90' : 'text-slate-400 group-hover:text-primary transition-colors'; ?>">receipt_long</span>
                 My Payments
             </a>
-            <a href="#" class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary transition-colors">
-                <span class="material-symbols-outlined mr-3 text-slate-400 group-hover:text-primary transition-colors">settings</span>
-                Settings
+            <a href="<?php echo BASE_URL; ?>views/client/profile.php" class="group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors <?php echo $current_page == 'profile.php' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary'; ?>">
+                <span class="material-symbols-outlined mr-3 <?php echo $current_page == 'profile.php' ? 'text-white/90' : 'text-slate-400 group-hover:text-primary transition-colors'; ?>">settings</span>
+                Profile Settings
             </a>
         </nav>
 

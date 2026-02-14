@@ -3,17 +3,38 @@ require_once __DIR__ . '/../layouts/admin-sidebar.php';
 require_once __DIR__ . '/../../models/Property.php';
 require_once __DIR__ . '/../../models/Booking.php';
 require_once __DIR__ . '/../../models/User.php';
+require_once __DIR__ . '/../../models/Payment.php';
+require_once __DIR__ . '/../../core/Helper.php';
 
 // Instantiate Models
 $propertyModel = new Property();
 $bookingModel = new Booking();
 $userModel = new User();
+$paymentModel = new Payment();
 
 // Fetch Counts (Simple implementation for now)
 $properties_count = $propertyModel->read()->rowCount();
 $bookings_stmt = $bookingModel->readAll();
 $bookings_count = $bookings_stmt->rowCount();
-$users_count = $userModel->readAll()->rowCount();
+$users_count = $userModel->countByRole('client');
+
+// Calculate Revenue
+$total_revenue = $paymentModel->getTotalRevenue();
+
+$current_month = date('m');
+$current_year = date('Y');
+$last_month = date('m', strtotime('-1 month'));
+$last_month_year = date('Y', strtotime('-1 month'));
+
+$current_month_revenue = $paymentModel->getMonthlyRevenue($current_month, $current_year);
+$last_month_revenue = $paymentModel->getMonthlyRevenue($last_month, $last_month_year);
+
+$revenue_growth = 0;
+if ($last_month_revenue > 0) {
+    $revenue_growth = (($current_month_revenue - $last_month_revenue) / $last_month_revenue) * 100;
+} elseif ($current_month_revenue > 0) {
+    $revenue_growth = 100; // 100% growth if last month was 0
+}
 
 // Fetch Recent Bookings for the table
 // Note: $bookings_stmt is already executed, but we need to reset/re-fetch or use fetchAll if we iterate twice.
@@ -95,15 +116,15 @@ $users_count = $userModel->readAll()->rowCount();
         <div class="flex justify-between items-start mb-4">
             <div>
                 <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Revenue</p>
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">GHS 450k</h3>
+                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1"><?php echo Helper::formatCurrency($total_revenue); ?></h3>
             </div>
             <div class="p-2 bg-primary/10 rounded-lg text-primary">
                 <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
             </div>
         </div>
          <div class="flex items-center gap-2">
-            <span class="flex items-center text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">
-                <span class="material-symbols-outlined text-xs mr-0.5">trending_up</span> 8.2%
+            <span class="flex items-center text-xs font-semibold <?php echo $revenue_growth >= 0 ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-red-600 bg-red-50 dark:bg-red-900/20'; ?> px-1.5 py-0.5 rounded">
+                <span class="material-symbols-outlined text-xs mr-0.5"><?php echo $revenue_growth >= 0 ? 'trending_up' : 'trending_down'; ?></span> <?php echo number_format(abs($revenue_growth), 1); ?>%
             </span>
             <span class="text-xs text-slate-400">vs last month</span>
         </div>
@@ -191,7 +212,7 @@ $users_count = $userModel->readAll()->rowCount();
     <div class="lg:col-span-1 bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col">
         <div class="p-6 border-b border-slate-100 dark:border-slate-800/50 flex justify-between items-center">
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">Recent Bookings</h3>
-            <a href="<?php echo BASE_URL; ?>views/admin/bookings/index.php" class="text-sm font-medium text-primary hover:text-primary-light">View All</a>
+            <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=index" class="text-sm font-medium text-primary hover:text-primary-light">View All</a>
         </div>
         <div class="overflow-x-auto custom-scrollbar flex-1">
             <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
@@ -209,10 +230,10 @@ $users_count = $userModel->readAll()->rowCount();
                         if($count >= 5) break; 
                         $count++;
                         
-                        $statusColor = match($booking['payment_status']) {
-                            'paid' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+                        $statusColor = match($booking['booking_status']) {
+                            'confirmed' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
                             'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-                            'failed', 'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+                            'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
                             default => 'bg-slate-100 text-slate-800'
                         };
                     ?>
@@ -230,7 +251,7 @@ $users_count = $userModel->readAll()->rowCount();
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusColor; ?>">
-                                <?php echo ucfirst($booking['payment_status']); ?>
+                                <?php echo ucfirst($booking['booking_status']); ?>
                             </span>
                         </td>
                     </tr>

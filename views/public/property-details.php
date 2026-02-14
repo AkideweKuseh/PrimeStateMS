@@ -1,6 +1,8 @@
 <?php 
 require_once __DIR__ . '/../layouts/header.php';
 require_once __DIR__ . '/../../models/Property.php';
+require_once __DIR__ . '/../../models/SavedProperty.php';
+require_once __DIR__ . '/../../core/Auth.php';
 
 if (!isset($_GET['id'])) {
     Helper::redirect('views/public/properties.php');
@@ -188,6 +190,22 @@ if (!$property) {
                             <p class="text-sm text-slate-500 dark:text-slate-400">Verified Agent</p>
                         </div>
                     </div>
+
+                    <!-- Save Button -->
+                    <?php 
+                    $isSaved = false;
+                    if (Auth::check()) {
+                        $savedPropertyModel = new SavedProperty();
+                        $isSaved = $savedPropertyModel->isSaved(Auth::id(), $property['id']);
+                    }
+                    ?>
+                    <form action="<?php echo BASE_URL; ?>controllers/SavedPropertyController.php?action=toggle" method="POST" class="mb-6">
+                        <input type="hidden" name="property_id" value="<?php echo $property['id']; ?>">
+                        <button type="submit" class="w-full py-2 px-4 rounded-lg border <?php echo $isSaved ? 'border-red-200 bg-red-50 text-red-600' : 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'; ?> transition-colors font-medium text-sm flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg"><?php echo $isSaved ? 'favorite' : 'favorite_border'; ?></span>
+                            <?php echo $isSaved ? 'Saved to Favorites' : 'Save to Favorites'; ?>
+                        </button>
+                    </form>
 
                     <!-- Contact Actions -->
                     <div class="grid grid-cols-2 gap-3 mb-6">

@@ -56,17 +56,58 @@ class Booking {
         return $stmt;
     }
     
-    // Read all bookings (Admin)
-    public function readAll() {
-        $query = "SELECT b.*, p.title, p.price, u.full_name as client_name, u.email as client_email, u.phone as client_phone
+    // Read all bookings (Admin)    // Get all bookings
+    public function readAll($filters = []) {
+        $query = "SELECT b.*, p.title, p.price, p.main_image, u.full_name as client_name, u.email as client_email, u.phone as client_phone 
                   FROM " . $this->table_name . " b
                   JOIN properties p ON b.property_id = p.id
                   JOIN users u ON b.client_id = u.id
-                  ORDER BY b.created_at DESC";
+                  WHERE 1=1";
+
+        // Apply filters
+        if (!empty($filters['status'])) {
+            $query .= " AND b.booking_status = :status";
+        }
+        if (!empty($filters['start_date'])) {
+            $query .= " AND b.booking_date >= :start_date";
+        }
+        if (!empty($filters['end_date'])) {
+            $query .= " AND b.booking_date <= :end_date";
+        }
+        
+        $query .= " ORDER BY b.created_at DESC";
 
         $stmt = $this->conn->prepare($query);
+
+        if (!empty($filters['status'])) {
+            $stmt->bindParam(':status', $filters['status']);
+        }
+        if (!empty($filters['start_date'])) {
+            $stmt->bindParam(':start_date', $filters['start_date']);
+        }
+        if (!empty($filters['end_date'])) {
+            $stmt->bindParam(':end_date', $filters['end_date']);
+        }
+
         $stmt->execute();
         return $stmt;
+    }
+
+    // Update booking status
+    public function updateStatus($id, $status) {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET booking_status = :status, 
+                      updated_at = NOW() 
+                  WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":status", $status);
+        $stmt->bindParam(":id", $id);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
     }
 
     // Read single booking details

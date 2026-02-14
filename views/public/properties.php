@@ -2,16 +2,47 @@
 require_once __DIR__ . '/../layouts/header.php'; 
 require_once __DIR__ . '/../../models/Property.php';
 
+require_once __DIR__ . '/../../models/SavedProperty.php';
+require_once __DIR__ . '/../../core/Auth.php';
+
 // Initialize Property Model
 $propertyModel = new Property();
+$savedPropertyModel = new SavedProperty();
+$savedPropertyIds = [];
+
+if (Auth::check()) {
+    $savedPropertyIds = $savedPropertyModel->getSavedPropertyIds(Auth::user()['id']);
+}
 
 // Get Filters
+$location = $_GET['location'] ?? '';
+$property_type = $_GET['property_type'] ?? '';
+$price_range = $_GET['price_range'] ?? '';
+$price_min = $_GET['price_min'] ?? '';
+$price_max = $_GET['price_max'] ?? '';
+$bedrooms = $_GET['bedrooms'] ?? '';
+$bathrooms = $_GET['bathrooms'] ?? '';
+
+// Parse price_range if provided and individual min/max not set
+if (!empty($price_range) && empty($price_min) && empty($price_max)) {
+    if (strpos($price_range, '+') !== false) {
+        $price_min = (int) str_replace(['+', ',', 'GHS '], '', $price_range);
+    } elseif (strpos($price_range, '-') !== false) {
+        $parts = explode('-', $price_range);
+        if (count($parts) == 2) {
+            $price_min = (int) trim($parts[0]);
+            $price_max = (int) trim($parts[1]);
+        }
+    }
+}
+
 $filters = [
-    'location' => $_GET['location'] ?? '',
-    'property_type' => $_GET['property_type'] ?? '',
-    'price_max' => $_GET['price_max'] ?? '',
-    'bedrooms' => $_GET['bedrooms'] ?? '',
-    'bathrooms' => $_GET['bathrooms'] ?? ''
+    'location' => $location,
+    'property_type' => $property_type,
+    'price_min' => $price_min,
+    'price_max' => $price_max,
+    'bedrooms' => $bedrooms,
+    'bathrooms' => $bathrooms
 ];
 
 // Fetch Properties
@@ -132,6 +163,9 @@ $properties = $propertyModel->read($filters);
                     </div>
                 </div>
                 
+                <!-- Hidden Inputs -->
+                <input type="hidden" name="price_min" value="<?php echo htmlspecialchars($filters['price_min']); ?>">
+
                 <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-2 rounded-lg shadow-lg shadow-primary/20 transition-all flex justify-center items-center gap-2">
                     <span class="material-symbols-outlined text-sm">filter_alt</span>
                     Apply Filters
@@ -153,6 +187,15 @@ $properties = $propertyModel->read($filters);
                         <span class="absolute top-3 left-3 bg-white dark:bg-background-dark text-slate-900 dark:text-white text-xs font-bold px-3 py-1 rounded-full z-10 shadow-sm uppercase tracking-wide">
                             For <?php echo ucfirst($property['listing_type']); ?>
                         </span>
+                        <?php 
+                        $isSaved = in_array($property['id'], $savedPropertyIds); 
+                        ?>
+                        <form action="<?php echo BASE_URL; ?>controllers/SavedPropertyController.php?action=toggle" method="POST" class="absolute top-3 right-3 z-20">
+                            <input type="hidden" name="property_id" value="<?php echo $property['id']; ?>">
+                            <button type="submit" class="p-1.5 bg-white/50 hover:bg-white rounded-full transition-colors <?php echo $isSaved ? 'text-red-500' : 'text-slate-700'; ?> shadow-sm" title="<?php echo $isSaved ? 'Remove from Saved' : 'Save Property'; ?>">
+                                <span class="material-symbols-outlined text-sm"><?php echo $isSaved ? 'favorite' : 'favorite_border'; ?></span>
+                            </button>
+                        </form>
                         <div class="block h-full">
                             <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                  src="<?php echo BASE_URL; ?>uploads/properties/<?php echo $property['main_image'] ?? 'default.jpg'; ?>" 

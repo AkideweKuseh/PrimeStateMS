@@ -21,6 +21,10 @@ class Helper {
             'message' => $message
         ];
     }
+    
+    public static function flash($type, $message) {
+        self::setFlash($type, $message);
+    }
 
     // Get and clear flash message
     public static function getFlash() {

@@ -76,13 +76,79 @@ class User {
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
-    
+
     // Get all users
     public function readAll() {
         $query = "SELECT * FROM " . $this->table_name . " ORDER BY created_at DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
+    }
+
+    // Check if email exists (excluding current user ID)
+    public function emailExistsForOther($email, $id) {
+        $query = "SELECT id FROM " . $this->table_name . " WHERE email = :email AND id != :id LIMIT 0,1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":email", $email);
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }
+
+    // Update user profile
+    public function update($id, $data) {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET full_name = :full_name, 
+                      email = :email, 
+                      phone = :phone";
+        
+        // Only update password if provided
+        if (!empty($data['password'])) {
+            $query .= ", password = :password";
+        }
+
+        $query .= " WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+
+        // Sanitize & Bind
+        $full_name = htmlspecialchars(strip_tags($data['full_name']));
+        $email = htmlspecialchars(strip_tags($data['email']));
+        $phone = htmlspecialchars(strip_tags($data['phone']));
+
+        $stmt->bindParam(":full_name", $full_name);
+        $stmt->bindParam(":email", $email);
+        $stmt->bindParam(":phone", $phone);
+        $stmt->bindParam(":id", $id);
+
+        if (!empty($data['password'])) {
+            $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
+            $stmt->bindParam(":password", $password_hash);
+        }
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    // Get user by ID
+    public function readOne($id) {
+        $query = "SELECT id, full_name, email, phone, role, created_at FROM " . $this->table_name . " WHERE id = :id LIMIT 0,1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Count users by role
+    public function countByRole($role) {
+        $query = "SELECT COUNT(*) as count FROM " . $this->table_name . " WHERE role = :role";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":role", $role);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['count'];
     }
 }
 ?>

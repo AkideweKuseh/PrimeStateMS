@@ -73,6 +73,12 @@ $myBookings = $bookingModel->readByClient(Auth::id());
                             <a href="<?php echo BASE_URL; ?>views/public/property-details.php?id=<?php echo $booking['property_id']; ?>" class="text-blue-500 hover:text-blue-700 transition-colors" title="View Property">
                                 <span class="material-symbols-outlined text-lg">visibility</span>
                             </a>
+
+                            <?php if($booking['booking_status'] === 'pending'): ?>
+                            <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=payment&booking_id=<?php echo $booking['id']; ?>" class="inline-flex items-center justify-center p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors" title="Pay Now">
+                                <span class="material-symbols-outlined text-lg">credit_card</span>
+                            </a>
+                            <?php endif; ?>
                             
                             <?php if($booking['booking_status'] !== 'confirmed'): ?>
                             <form action="<?php echo BASE_URL; ?>controllers/BookingController.php?action=delete" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this booking? This action cannot be undone.');">

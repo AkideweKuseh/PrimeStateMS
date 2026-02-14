@@ -77,11 +77,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="material-symbols-outlined text-xl">domain</span>
             Properties
         </a>
-        <a href="<?php echo BASE_URL; ?>views/admin/bookings/index.php" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], 'bookings') !== false) || $current_page == 'bookings.php' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary'; ?>">
+        <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=index" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], 'bookings') !== false) || $current_page == 'BookingController.php' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary'; ?>">
             <span class="material-symbols-outlined text-xl">event_note</span>
             Bookings
         </a>
-        <a href="#" onclick="alert('Payments implementation coming soon!'); return false;" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary">
+        <a href="<?php echo BASE_URL; ?>controllers/PaymentController.php?action=index" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], 'payments') !== false) || $current_page == 'PaymentController.php' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary'; ?>">
             <span class="material-symbols-outlined text-xl">payments</span>
             Payments
         </a>
