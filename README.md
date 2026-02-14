@@ -1,95 +1,235 @@
-# PrimeStateMS - Prime Estate Management System
+# 🏢 Prime Estate Management System
 
-PrimeStateMS is a comprehensive web-based application designed for managing real estate properties and bookings. It provides a seamless experience for potential tenants ("Clients") to browse and book properties, while offering robust tools for administrators to manage listings, track bookings, and oversee operations.
+A comprehensive web-based real estate management platform for property listings, bookings, and payments.
 
-## 🚀 Features
+[![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
+[![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-orange)](https://www.mysql.com/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-### 🏠 Public Interface
--   **Property Browsing**: extensive catalog of properties with filtering options (Location, Type, Price, Bedrooms, Bathrooms).
--   **Property Details**: Detailed views with high-quality images, amenities, and location info.
--   **Responsive Design**: Optimized for desktop and mobile devices using TailwindCSS.
+---
 
-### 👤 Client Portal
--   **Dashboard**: Overview of active bookings and recent activity.
--   **Booking Management**: Book properties, view booking status (Pending, Confirmed, Cancelled), and cancel/delete eligible bookings.
--   **Favorites**: Save properties to a wishlist (UI implemented).
+## 📋 Overview
 
-### 🛡️ Admin Dashboard
--   **Property Management**: Add, Edit, and Delete property listings.
--   **Booking Oversight**: View all bookings, approve/confirm requests, or cancel them.
--   **Image Management**: Upload and manage property images.
+Prime Estate Management System is a full-featured real estate management solution that streamlines property management, client bookings, and payment processing. Built with PHP and MySQL, it provides separate interfaces for administrators and clients with role-based access control.
 
-## 🛠️ Technology Stack
+### ✨ Key Features
 
--   **Backend**: PHP (Custom MVC Architecture)
--   **Frontend**: HTML5, JavaScript, TailwindCSS (CDN)
--   **Database**: MySQL / MariaDB
--   **Icons**: Google Material Symbols
--   **Fonts**: Inter (Google Fonts)
+- 🏠 **Property Management** - Complete CRUD operations with image uploads
+- 🔍 **Advanced Search** - Filter properties by location, type, and price
+- 📅 **Booking System** - Real-time booking with conflict prevention
+- 💰 **Payment Processing** - Secure payment tracking and receipts
+- 📊 **Reports & Analytics** - Comprehensive reporting dashboard
+- 🔔 **Notifications** - Real-time alerts for bookings and payments
+- ⚙️ **Admin Settings** - Configurable branding and currency
+- 🎨 **Modern UI** - Responsive design with dark mode support
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- PHP 7.4 or higher
+- MySQL 5.7 or higher
+- Apache/Nginx web server
+- XAMPP/WAMP (recommended for local development)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd PrimeStateMS
+   ```
+
+2. **Create database**
+   ```sql
+   CREATE DATABASE real_estate_db;
+   ```
+
+3. **Import schema**
+   ```bash
+   mysql -u root -p real_estate_db < database/schema.sql
+   ```
+
+4. **Configure settings**
+   - Edit `config/config.php` with your database credentials
+   - Set your `BASE_URL`
+
+5. **Run setup scripts**
+   ```bash
+   php tasks/create_settings_table.php
+   ```
+
+6. **Access the application**
+   ```
+   http://localhost/PrimeStateMS
+   ```
+
+### Default Admin Login
+- **Email:** admin@primeestate.com
+- **Password:** admin123 *(Change after first login)*
+
+---
+
+## 📖 Documentation
+
+For comprehensive documentation, see [DOCUMENTATION.md](DOCUMENTATION.md)
+
+**Contents:**
+- System Architecture
+- Detailed Feature Guide
+- Database Schema
+- User Roles & Permissions
+- API Reference
+- Troubleshooting Guide
+
+---
+
+## 🎯 Requirements Checklist
+
+### Objectives ✅
+- [x] Centralized property management platform
+- [x] Online property search and booking
+- [x] Admin dashboard with reports
+- [x] Secure data handling
+- [x] Reduced manual paperwork
+- [x] Real-time updates
+
+### Functional Requirements ✅
+- [x] User Registration & Login
+- [x] Property Management (CRUD)
+- [x] Property Search & Filtering
+- [x] Booking Management
+- [x] Payment Processing
+- [x] Report Generation
+- [x] Notification System
+- [x] Data Storage (MySQL)
+- [x] Security & Access Control
+
+**Status:** 100% Complete ✅
+
+---
+
+## 🏗️ Technology Stack
+
+**Backend:**
+- PHP 7.4+
+- MySQL 5.7+
+- PDO for database operations
+
+**Frontend:**
+- HTML5
+- Tailwind CSS
+- JavaScript (Vanilla)
+
+**Architecture:**
+- MVC Pattern
+- Role-based Access Control
+- RESTful routing
+
+---
 
 ## 📂 Project Structure
 
-> [!TIP]
-> For a detailed breakdown of the MVC architecture, file roles, and request flow, please read the **[Architecture Documentation](ARCHITECTURE.md)**.
-
 ```
 PrimeStateMS/
-├── config/             # Database and Application configuration
-├── controllers/        # Request handling logic (Auth, Booking, Property)
-├── core/               # Core framework classes (Router, Helper, Auth middleware)
-├── models/             # Database models (Booking, Property, User)
-├── public/             # Public assets
-├── sql/                # Database schema import files
-├── uploads/            # Property image uploads storage
-├── views/              # UI Templates
-│   ├── admin/          # Admin-specific views
-│   ├── client/         # Client-specific views
-│   ├── layouts/        # Shared header/footer/sidebar layouts
-│   └── public/         # Publicly accessible pages
-└── index.php           # Entry point
+├── config/           # Configuration files
+├── core/             # Core utilities (Auth, Helper, Validator)
+├── controllers/      # Business logic controllers
+├── models/           # Database models
+├── views/            # UI templates
+│   ├── admin/        # Admin dashboard
+│   ├── client/       # Client dashboard
+│   ├── public/       # Public pages
+│   └── layouts/      # Shared layouts
+├── uploads/          # User uploads
+└── tasks/            # Setup scripts
 ```
 
-## ⚙️ Installation & Setup
+---
 
-### Prerequisites
--   PHP 7.4 or higher
--   MySQL/MariaDB
--   Apache Server (e.g., via XAMPP, WAMP, or Laragon)
+## 👥 User Roles
 
-### Steps
+### 🔵 Client
+- Browse and search properties
+- Save favorite properties
+- Book properties
+- Make payments
+- View history and receipts
 
-1.  **Clone the Repository**
-    ```bash
-    git clone https://github.com/your-username/PrimeStateMS.git
-    cd PrimeStateMS
-    ```
-    *Or extract the source code to your web server's root directory (e.g., `htdocs` or `www`).*
+### 🔴 Administrator
+- All client features
+- Manage properties
+- Approve/reject bookings
+- Verify payments
+- Generate reports
+- Configure system settings
+- Create admin accounts
 
-2.  **Database Setup**
-    -   Open your MySQL administration tool (e.g., phpMyAdmin).
-    -   Create a new database named `real_estate_db`.
-    -   Import the schema file located at `sql/database.sql` into the new database.
+---
 
-3.  **Configuration**
-    -   **Database**: Open `config/Database.php`. The default settings are configured for a standard XAMPP setup:
-        -   Host: `localhost`
-        -   User: `root`
-        -   Pass: ` ` (empty)
-        -   DB: `real_estate_db`
-        -   *Update these values if your local setup differs.*
-    -   **Base URL**: Open `config/config.php`.
-        -   Update `BASE_URL` if you are hosting the project in a subfolder different from `/PrimeStateMS/`.
-        ```php
-        define('BASE_URL', 'http://localhost/PrimeStateMS/');
-        ```
+## 🔒 Security Features
 
-4.  **Run the Application**
-    -   Start your Apache and MySQL services.
-    -   Open your browser and navigate to:
-        `http://localhost/PrimeStateMS/`
+- Bcrypt password hashing
+- SQL injection prevention (PDO prepared statements)
+- XSS protection (input sanitization)
+- Role-based authorization
+- Secure session management
 
-## 🔑 Default Credentials (if applicable)
+---
 
-*Check your database `users` table for pre-seeded accounts or register a new account via the interface.*
+## 🌟 Highlights
 
+**Beyond Core Requirements:**
+- Saved/Favorite properties system
+- Comprehensive activity logging
+- Dynamic branding (configurable logo, name, currency)
+- Toast notification system
+- Dark mode support
+- Mobile-responsive design
 
+---
+
+## 📸 Screenshots
+
+*(Add screenshots here)*
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📧 Contact & Support
+
+For support or inquiries:
+- **Email:** support@primeestate.com
+- **Documentation:** [DOCUMENTATION.md](DOCUMENTATION.md)
+- **Issues:** [GitHub Issues](https://github.com/your-repo/issues)
+
+---
+
+## 🙏 Acknowledgments
+
+- Tailwind CSS for the UI framework
+- Google Material Symbols for icons
+- PHP community for best practices
+
+---
+
+**Made with ❤️ by Prime Estate Development Team**
