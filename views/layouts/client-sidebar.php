@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../../core/Helper.php';
 
 Auth::requireLogin();
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -49,8 +50,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 fixed top-0 w-full z-20 flex items-center justify-between px-6 shadow-sm">
     <!-- Logo -->
     <a href="<?php echo BASE_URL; ?>" class="flex items-center gap-3 w-64 text-decoration-none">
-        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">P</div>
-        <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Prime Estate</span>
+        <?php 
+        $siteLogo = Helper::getSetting('site_logo');
+        $siteName = Helper::getSetting('site_name', 'Prime Estate');
+        if ($siteLogo && $siteLogo !== 'default_logo.png'): 
+        ?>
+            <img src="<?php echo BASE_URL; ?>uploads/settings/<?php echo $siteLogo; ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
+        <?php else: ?>
+            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">P</div>
+        <?php endif; ?>
+        <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"><?php echo $siteName; ?></span>
     </a>
 
     <!-- Search Bar -->
@@ -65,11 +74,20 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <!-- Right Actions -->
     <div class="flex items-center gap-4 w-64 justify-end">
+        <?php
+        require_once __DIR__ . '/../../models/Notification.php';
+        $notificationModel = new Notification();
+        $unreadCount = $notificationModel->countUnread($_SESSION['user_id']);
+        ?>
         <!-- Notification -->
-        <button class="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+        <a href="<?php echo BASE_URL; ?>views/client/notifications.php" class="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
             <span class="material-symbols-outlined">notifications</span>
-            <span class="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900"></span>
-        </button>
+            <?php if ($unreadCount > 0): ?>
+            <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white dark:border-slate-900">
+                <?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?>
+            </span>
+            <?php endif; ?>
+        </a>
         <!-- Profile Dropdown -->
         <div class="flex items-center gap-2 cursor-pointer p-1 pr-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
             <img class="h-8 w-8 rounded-full object-cover shadow-sm" src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'Client'); ?>&background=random" alt="Profile">

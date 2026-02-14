@@ -4,11 +4,13 @@ require_once __DIR__ . '/../../models/Booking.php';
 require_once __DIR__ . '/../../models/Property.php'; // For recommended properties
 require_once __DIR__ . '/../../models/SavedProperty.php';
 require_once __DIR__ . '/../../models/Payment.php';
+require_once __DIR__ . '/../../models/Activity.php';
 
 $bookingModel = new Booking();
 $propertyModel = new Property();
 $savedPropertyModel = new SavedProperty();
 $paymentModel = new Payment();
+$activityModel = new Activity();
 
 $savedPropertyIds = $savedPropertyModel->getSavedPropertyIds($_SESSION['user_id']);
 
@@ -133,50 +135,58 @@ $recommendedProps = array_slice($recommendedProps, 0, 3);
         </div>
     </div>
 
-    <!-- Right Column: Recent Activity (Mocked for now) -->
+    <!-- Right Column: Recent Activity -->
     <div class="lg:col-span-1">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 h-full flex flex-col">
             <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h2>
-                <button class="text-slate-400 hover:text-primary transition-colors">
+                <a href="<?php echo BASE_URL; ?>views/client/activity.php" class="text-slate-400 hover:text-primary transition-colors" title="View All">
                     <span class="material-symbols-outlined">more_horiz</span>
-                </button>
+                </a>
             </div>
             <div class="p-6 space-y-6 flex-1 overflow-y-auto max-h-[600px]">
-                <!-- Item 1 -->
+                <?php 
+                $recentActivities = $activityModel->getRecent($_SESSION['user_id'], 5);
+                if ($recentActivities->rowCount() > 0):
+                    while ($activity = $recentActivities->fetch(PDO::FETCH_ASSOC)):
+                        $icon = 'info';
+                        $colorClass = 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+                        
+                        if ($activity['type'] == 'booking') {
+                            $icon = 'schedule';
+                            $colorClass = 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400';
+                        } elseif ($activity['type'] == 'payment') {
+                            $icon = 'payments';
+                            $colorClass = 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
+                        } elseif ($activity['type'] == 'auth') {
+                            $icon = 'lock';
+                            $colorClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+                        }
+                ?>
                 <div class="flex gap-4">
                     <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-sm text-green-600 dark:text-green-400">check_circle</span>
+                        <div class="w-8 h-8 rounded-full <?php echo $colorClass; ?> flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-sm"><?php echo $icon; ?></span>
                         </div>
                         <div class="w-px h-full bg-slate-200 dark:bg-slate-700 my-2"></div>
                     </div>
                     <div class="pb-6">
-                        <p class="text-sm font-semibold text-slate-900 dark:text-white">Account Created</p>
-                        <p class="text-xs text-slate-500 mt-1">Welcome to Prime Estate!</p>
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wide">Just now</p>
+                        <p class="text-sm font-semibold text-slate-900 dark:text-white"><?php echo ucfirst($activity['type']); ?></p>
+                        <p class="text-xs text-slate-500 mt-1"><?php echo $activity['message']; ?></p>
+                        <p class="text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wide"><?php echo Helper::timeAgo($activity['created_at']); ?></p>
                     </div>
                 </div>
-                
-                <?php if($activeBookingsCount > 0): ?>
-                <div class="flex gap-4">
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-sm text-orange-600 dark:text-orange-400">schedule</span>
-                        </div>
-                        <div class="w-px h-full bg-slate-200 dark:bg-slate-700 my-2"></div>
-                    </div>
-                     <div class="pb-6">
-                        <p class="text-sm font-semibold text-slate-900 dark:text-white">Booking Request</p>
-                        <p class="text-xs text-slate-500 mt-1">You have requested a booking/viewing.</p>
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wide">Recently</p>
-                    </div>
+                <?php 
+                    endwhile;
+                else: 
+                ?>
+                <div class="text-center py-8 text-slate-500">
+                    <p>No recent activity.</p>
                 </div>
                 <?php endif; ?>
-
             </div>
             <div class="p-4 border-t border-slate-100 dark:border-slate-700">
-                <a href="<?php echo BASE_URL; ?>views/client/bookings.php" class="block w-full py-2 text-sm text-center text-primary font-medium hover:bg-primary/5 rounded-lg transition-colors">
+                <a href="<?php echo BASE_URL; ?>views/client/activity.php" class="block w-full py-2 text-sm text-center text-primary font-medium hover:bg-primary/5 rounded-lg transition-colors">
                     View Full History
                 </a>
             </div>

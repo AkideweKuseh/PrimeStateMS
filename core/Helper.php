@@ -41,12 +41,58 @@ class Helper {
 
     // Format currency
     public static function formatCurrency($amount) {
-        return 'GH₵ ' . number_format($amount, 2);
+        $currencySymbol = self::getSetting('currency_symbol', '₵');
+        $currencyCode = self::getSetting('currency_code', 'GHS');
+        
+        return $currencyCode . ' ' . $currencySymbol . ' ' . number_format($amount, 2);
     }
     
     // Format date
     public static function formatDate($date) {
         return date('d M Y', strtotime($date));
+    }
+    
+    // Format relative time (e.g., "2 hours ago")
+    public static function timeAgo($timestamp) {
+        $time = strtotime($timestamp);
+        $current = time();
+        $diff = $current - $time;
+        
+        $seconds = $diff;
+        $minutes = round($diff / 60);
+        $hours = round($diff / 3600);
+        $days = round($diff / 86400);
+        $weeks = round($diff / 604800);
+        $months = round($diff / 2600640);
+        $years = round($diff / 31207680);
+        
+        if ($seconds <= 60) return "Just now";
+        if ($minutes <= 60) return "$minutes mins ago";
+        if ($hours <= 24) return "$hours hours ago";
+        if ($days <= 7) return "$days days ago";
+        if ($weeks <= 4.3) return "$weeks weeks ago";
+        if ($months <= 12) return "$months months ago";
+        return "$years years ago";
+    }
+    // Get Setting with default fallback
+    public static function getSetting($key, $default = '') {
+        // Optimization: In a real app, we might handle caching here.
+        // For now, we instantiate the model. This might be heavy if called many times in a loop,
+        // so ideally, we'd fetch all settings once and store in a static property or session.
+        
+        static $settingsCache = null;
+
+        if ($settingsCache === null) {
+            if (file_exists(__DIR__ . '/../models/Setting.php')) {
+                require_once __DIR__ . '/../models/Setting.php';
+                $settingModel = new Setting();
+                $settingsCache = $settingModel->getAllAsArray();
+            } else {
+                return $default;
+            }
+        }
+
+        return $settingsCache[$key] ?? $default;
     }
 }
 ?>

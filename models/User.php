@@ -47,6 +47,34 @@ class User {
         return false;
     }
 
+    // Create a new user (array-based, for admin creating users)
+    public function create($data) {
+        $query = "INSERT INTO " . $this->table_name . " 
+                (full_name, email, phone, password, role) 
+                VALUES (:full_name, :email, :phone, :password, :role)";
+
+        $stmt = $this->conn->prepare($query);
+
+        // Sanitize
+        $full_name = htmlspecialchars(strip_tags($data['full_name']));
+        $email = htmlspecialchars(strip_tags($data['email']));
+        $phone = isset($data['phone']) ? htmlspecialchars(strip_tags($data['phone'])) : '';
+        $password = password_hash($data['password'], PASSWORD_DEFAULT);
+        $role = isset($data['role']) ? htmlspecialchars(strip_tags($data['role'])) : 'client';
+
+        // Bind
+        $stmt->bindParam(":full_name", $full_name);
+        $stmt->bindParam(":email", $email);
+        $stmt->bindParam(":phone", $phone);
+        $stmt->bindParam(":password", $password);
+        $stmt->bindParam(":role", $role);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
     // Login user
     public function login($email, $password) {
         $query = "SELECT id, full_name, email, password, role FROM " . $this->table_name . " WHERE email = :email LIMIT 0,1";
@@ -149,6 +177,13 @@ class User {
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['count'];
+    }
+    // Get all admins
+    public function readAllAdmins() {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE role = 'admin' ORDER BY created_at DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt;
     }
 }
 ?>

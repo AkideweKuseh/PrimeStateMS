@@ -1,6 +1,14 @@
 <?php 
-require_once __DIR__ . '/../../layouts/admin-sidebar.php'; 
+require_once __DIR__ . '/../../../config/config.php';
 require_once __DIR__ . '/../../../core/Helper.php';
+
+// Safe Redirect if accessed directly without Controller data
+if (!isset($bookings)) {
+    header("Location: " . BASE_URL . "controllers/BookingController.php?action=index");
+    exit;
+}
+
+require_once __DIR__ . '/../../layouts/admin-sidebar.php'; 
 ?>
 
 <!-- Page Header -->

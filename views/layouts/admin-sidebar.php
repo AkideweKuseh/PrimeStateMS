@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../../core/Helper.php';
 
 Auth::requireAdmin();
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -48,8 +49,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Logo Area -->
     <div class="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-800/50">
         <a href="<?php echo BASE_URL; ?>" class="flex items-center gap-2 text-primary font-bold text-xl tracking-tight decoration-0">
-            <span class="material-symbols-outlined text-2xl">apartment</span>
-            Prime Estate
+            <?php 
+            $siteLogo = Helper::getSetting('site_logo');
+            $siteName = Helper::getSetting('site_name', 'Prime Estate');
+            if ($siteLogo && $siteLogo !== 'default_logo.png'): 
+            ?>
+                <img src="<?php echo BASE_URL; ?>uploads/settings/<?php echo $siteLogo; ?>" alt="<?php echo $siteName; ?>" class="h-10 w-auto">
+            <?php else: ?>
+                <span class="material-symbols-outlined text-2xl">apartment</span>
+            <?php endif; ?>
+            <?php echo $siteName; ?>
         </a>
     </div>
 
@@ -89,10 +98,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="material-symbols-outlined text-xl">group</span>
             Users
         </a>
+        <a href="<?php echo BASE_URL; ?>controllers/ReportController.php?action=index" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], 'reports') !== false) || $current_page == 'ReportController.php' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary'; ?>">
+            <span class="material-symbols-outlined text-xl">assessment</span>
+            Reports
+        </a>
 
         <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800/50">
             <p class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">System</p>
-            <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary transition-colors">
+            <a href="<?php echo BASE_URL; ?>controllers/SettingController.php?action=index" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors <?php echo ($current_page == 'index.php' && strpos($_SERVER['PHP_SELF'], 'settings') !== false) || $current_page == 'SettingController.php' ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-primary'; ?>">
                 <span class="material-symbols-outlined text-xl">settings</span>
                 Settings
             </a>
@@ -125,12 +138,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <input type="text" class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition duration-150 ease-in-out" placeholder="Search properties, bookings, or clients..." />
         </div>
 
+<?php
+require_once __DIR__ . '/../../models/Notification.php';
+$notificationModel = new Notification();
+$unreadCount = $notificationModel->countUnread($_SESSION['user_id']);
+?>
         <!-- Right Actions -->
         <div class="flex items-center gap-4 ml-4">
-            <button class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+            <a href="<?php echo BASE_URL; ?>views/admin/notifications.php" class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
                 <span class="material-symbols-outlined">notifications</span>
-                <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-[#1a1625]"></span>
-            </button>
+                <?php if ($unreadCount > 0): ?>
+                <span class="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white dark:border-[#1a1625]">
+                    <?php echo $unreadCount > 9 ? '9+' : $unreadCount; ?>
+                </span>
+                <?php endif; ?>
+            </a>
             <div class="border-l border-slate-200 dark:border-slate-700 h-6 mx-1"></div>
             <button class="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-primary transition-colors">
                 <span class="hidden sm:inline"><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>

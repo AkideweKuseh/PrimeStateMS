@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../models/Activity.php';
 require_once __DIR__ . '/../core/Validator.php';
 require_once __DIR__ . '/../core/Helper.php';
 
@@ -64,6 +65,8 @@ class AuthController {
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = new User();
+            $activity = new Activity();
+            
             $email = $_POST['email'];
             $password = $_POST['password'];
 
@@ -73,6 +76,9 @@ class AuthController {
                 $_SESSION['user_name'] = $user->full_name;
                 $_SESSION['user_email'] = $user->email;
                 $_SESSION['user_role'] = $user->role;
+
+                // Log Activity
+                $activity->log($user->id, "Logged in to the system.", "auth");
 
                 if ($user->role === 'admin') {
                     Helper::redirect('views/admin/dashboard.php');

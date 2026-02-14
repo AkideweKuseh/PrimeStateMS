@@ -48,6 +48,25 @@ class BookingController {
             $booking->notes = $_POST['notes'];
 
             if ($booking->create()) {
+                // Notify Admins
+                require_once __DIR__ . '/../models/Notification.php';
+                $notification = new Notification();
+                $notification->notifyAdmins(
+                    "New Booking Request",
+                    "New booking for Property #{$booking->property_id} by User #" . Auth::id(),
+                    "info",
+                    "controllers/BookingController.php?action=index"
+                );
+
+                // Notify Client
+                $notification->create(
+                    Auth::id(),
+                    "Booking Submitted",
+                    "Your booking request for Property #{$booking->property_id} is pending confirmation.",
+                    "info",
+                    "views/client/bookings.php"
+                );
+
                 Helper::setFlash('success', 'Booking request submitted successfully.');
                 Helper::redirect('views/client/dashboard.php');
             } else {
@@ -138,6 +157,29 @@ class BookingController {
                 if ($paymentModel->create($paymentData)) {
                     // Update booking status to confirmed
                     if ($bookingModel->confirm($bookingId)) {
+                        
+                        // Notifications
+                        require_once __DIR__ . '/../models/Notification.php';
+                        $notification = new Notification();
+                        $amountFormatted = Helper::formatCurrency($booking['total_amount']);
+
+                        // Notify Client
+                        $notification->create(
+                            $userId,
+                            "Payment Successful",
+                            "Your payment of {$amountFormatted} for Booking #{$bookingId} was successful and your booking is confirmed.",
+                            "success",
+                            "views/client/bookings.php"
+                        );
+
+                        // Notify Admins
+                        $notification->notifyAdmins(
+                            "Payment Received",
+                            "Client {$booking['client_name']} paid {$amountFormatted} for Booking #{$bookingId}.",
+                            "success",
+                            "controllers/PaymentController.php?action=index"
+                        );
+
                         if ($isJsonRequest) {
                             header('Content-Type: application/json');
                             echo json_encode(['success' => true, 'message' => 'Payment successful']);

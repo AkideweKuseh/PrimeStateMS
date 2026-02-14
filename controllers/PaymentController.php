@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../models/Payment.php';
+require_once __DIR__ . '/../models/Booking.php';
+require_once __DIR__ . '/../models/Activity.php';
+require_once __DIR__ . '/../models/Notification.php';
 require_once __DIR__ . '/../core/Helper.php';
 require_once __DIR__ . '/../core/Auth.php';
 
@@ -16,6 +19,10 @@ class PaymentController {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $payment = new Payment();
+            $booking = new Booking();
+            $activity = new Activity();
+            $notification = new Notification();
+
             $data = [
                 'booking_id' => $_POST['booking_id'],
                 'amount' => $_POST['amount'],
@@ -26,6 +33,28 @@ class PaymentController {
             ];
 
             if ($payment->create($data)) {
+                // Log Admin Activity
+                $activity->log(Auth::id(), "Recorded payment for Booking #{$data['booking_id']}", "payment");
+
+                // Notify Client
+                $bookingDetails = $booking->readOne($data['booking_id']);
+                if ($bookingDetails && isset($bookingDetails['client_id'])) {
+                    $clientId = $bookingDetails['client_id'];
+                    $amountFormatted = Helper::formatCurrency($data['amount']);
+                    
+                    // Log Client Activity
+                    $activity->log($clientId, "Payment of {$amountFormatted} verified for Booking #{$data['booking_id']}", "payment");
+
+                    // Send Notification
+                    $notification->create(
+                        $clientId, 
+                        "Payment Receipt", 
+                        "Your payment of {$amountFormatted} has been verified.", 
+                        "success", 
+                        "views/client/payments.php"
+                    );
+                }
+
                 Helper::setFlash('success', 'Payment recorded successfully.');
                 Helper::redirect('views/admin/dashboard.php');
             } else {
