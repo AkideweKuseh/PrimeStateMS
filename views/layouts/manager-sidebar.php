@@ -48,21 +48,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
 </head>
 <body class="bg-background-light text-slate-800 h-screen overflow-hidden flex font-body">
 
-<!-- Sidebar Edge Utility Column -->
-<div class="w-16 bg-[#EBEBEB] border-r border-slate-200 flex flex-col items-center py-6 gap-6 flex-shrink-0 z-20">
-    <div class="w-10 h-10 bg-slate-900 text-white rounded flex items-center justify-center shadow-lg">
-        <span class="material-symbols-outlined text-lg">change_history</span>
-    </div>
-    
-    <div class="w-10 h-10 bg-primary text-black font-display font-extrabold text-[13px] rounded flex items-center justify-center border border-slate-300">
-        M
-    </div>
-    
-    <button class="w-10 h-10 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center">
-        <span class="material-symbols-outlined text-xl">add</span>
-    </button>
-</div>
-
 <!-- Main Sidebar Container -->
 <aside class="w-56 bg-neutral-light border-r border-slate-200 hidden md:flex flex-col flex-shrink-0 z-20">
     <div class="h-16 flex items-center px-5 border-b border-slate-200/50">
@@ -71,63 +56,32 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
-    <!-- Segmented Toggle Option -->
-    <div class="px-5 py-4 border-b border-slate-200/50">
-        <div class="bg-slate-200/80 p-0.5 rounded flex text-center font-display text-[9px] font-bold tracking-widest uppercase">
-            <div id="sidebar-toggle-general" class="flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer transition-all">General</div>
-            <div id="sidebar-toggle-system" class="flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer transition-all">System</div>
-        </div>
-    </div>
-
     <!-- Navigation List -->
     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <div id="nav-group-general" class="space-y-1">
-            <a href="<?php echo BASE_URL; ?>views/manager/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'dashboard.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-                <span class="material-symbols-outlined text-base">dashboard</span>
-                Dashboard
-            </a>
-            <a href="<?php echo BASE_URL; ?>views/manager/properties.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'properties') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-                <span class="material-symbols-outlined text-base">domain</span>
-                Properties
-            </a>
-            <a href="<?php echo BASE_URL; ?>views/manager/tenants.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'tenants') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-                <span class="material-symbols-outlined text-base">group</span>
-                Tenants
-            </a>
-            <a href="<?php echo BASE_URL; ?>views/manager/rent.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'rent') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-                <span class="material-symbols-outlined text-base">payments</span>
-                Rent Tracking
-            </a>
-            <a href="<?php echo BASE_URL; ?>views/manager/maintenance.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'maintenance') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-                <span class="material-symbols-outlined text-base">build</span>
-                Maintenance
-            </a>
-            <a href="<?php echo BASE_URL; ?>controllers/ReportController.php?action=index" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'ReportController.php') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-                <span class="material-symbols-outlined text-base">assessment</span>
-                Reports
-            </a>
-        </div>
-
-        <div id="nav-group-system" class="space-y-4 hidden px-3 py-2">
-            <div>
-                <p class="text-[9px] font-bold font-display text-slate-400 uppercase tracking-widest mb-1.5">System Status</p>
-                <div class="p-3 bg-white border border-slate-200 rounded-sm">
-                    <div class="flex items-center gap-2 mb-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
-                        <span class="font-display text-[9px] font-bold tracking-wider text-slate-800 uppercase">Operational</span>
-                    </div>
-                    <p class="text-[8px] text-slate-400 leading-normal">The Prime Estate system is fully active and synchronized with database servers.</p>
-                </div>
-            </div>
-            <div>
-                <p class="text-[9px] font-bold font-display text-slate-400 uppercase tracking-widest mb-1.5">Account Info</p>
-                <div class="p-3 bg-white border border-slate-200 rounded-sm text-[8px] text-slate-400 space-y-1">
-                    <p>Role: <strong class="text-slate-800">MANAGER</strong></p>
-                    <p>Session: <strong class="text-slate-800">ACTIVE</strong></p>
-                    <p>IP Address: <strong class="text-slate-800">LOCAL (127.0.0.1)</strong></p>
-                </div>
-            </div>
-        </div>
+        <a href="<?php echo BASE_URL; ?>views/manager/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'dashboard.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">dashboard</span>
+            Dashboard
+        </a>
+        <a href="<?php echo BASE_URL; ?>views/manager/properties.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'properties') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">domain</span>
+            Properties
+        </a>
+        <a href="<?php echo BASE_URL; ?>views/manager/tenants.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'tenants') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">group</span>
+            Tenants
+        </a>
+        <a href="<?php echo BASE_URL; ?>views/manager/rent.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'rent') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">payments</span>
+            Rent Tracking
+        </a>
+        <a href="<?php echo BASE_URL; ?>views/manager/maintenance.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'maintenance') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">build</span>
+            Maintenance
+        </a>
+        <a href="<?php echo BASE_URL; ?>controllers/ReportController.php?action=index" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'ReportController.php') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">assessment</span>
+            Reports
+        </a>
     </nav>
 
     <!-- Sidebar Profile Details -->
@@ -142,37 +96,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
         </div>
     </div>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const generalToggle = document.getElementById('sidebar-toggle-general');
-        const systemToggle = document.getElementById('sidebar-toggle-system');
-        const generalGroup = document.getElementById('nav-group-general');
-        const systemGroup = document.getElementById('nav-group-system');
-        
-        if (generalToggle && systemToggle && generalGroup && systemGroup) {
-            function setTab(tab) {
-                if (tab === 'general') {
-                    generalToggle.className = 'flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer transition-all';
-                    systemToggle.className = 'flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer transition-all';
-                    generalGroup.classList.remove('hidden');
-                    systemGroup.classList.add('hidden');
-                } else {
-                    systemToggle.className = 'flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer transition-all';
-                    generalToggle.className = 'flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer transition-all';
-                    systemGroup.classList.remove('hidden');
-                    generalGroup.classList.add('hidden');
-                }
-            }
-            
-            generalToggle.addEventListener('click', () => setTab('general'));
-            systemToggle.addEventListener('click', () => setTab('system'));
-            
-            // Default to general group
-            setTab('general');
-        }
-    });
-    </script>
 </aside>
 
 <!-- Main Dashboard Frame -->
