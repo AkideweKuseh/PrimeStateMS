@@ -75,7 +75,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="px-5 py-4 border-b border-slate-200/50">
         <div class="bg-slate-200/80 p-0.5 rounded flex text-center font-display text-[9px] font-bold tracking-widest uppercase">
             <div class="flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer">General</div>
-            <div class="flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer">Project</div>
+            <div class="flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer">System</div>
         </div>
     </div>
 

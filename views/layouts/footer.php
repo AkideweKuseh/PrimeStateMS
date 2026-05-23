@@ -33,7 +33,7 @@
                 <h4 class="text-white font-display text-[11px] font-bold tracking-widest uppercase mb-6">Quick Links</h4>
                 <ul class="space-y-3 font-display text-[10px] tracking-widest uppercase">
                     <li><a href="<?php echo BASE_URL; ?>" class="hover:text-primary transition-colors flex items-center gap-2">Home</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>views/public/properties.php" class="hover:text-primary transition-colors flex items-center gap-2">Project</a></li>
+                    <li><a href="<?php echo BASE_URL; ?>views/public/properties.php" class="hover:text-primary transition-colors flex items-center gap-2">Properties</a></li>
                     <li><a href="<?php echo BASE_URL; ?>views/public/about.php" class="hover:text-primary transition-colors flex items-center gap-2">About Us</a></li>
                     <li><a href="<?php echo BASE_URL; ?>views/public/contact.php" class="hover:text-primary transition-colors flex items-center gap-2">Contact</a></li>
                 </ul>
