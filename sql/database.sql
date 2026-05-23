@@ -17,8 +17,8 @@ USE real_estate_db;
 -- ============================================================
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL COMMENT 'Full name of the user',
-    email VARCHAR(100) NOT NULL UNIQUE COMMENT 'Email address for login',
+    full_name VARCHAR(150) NOT NULL COMMENT 'Full name of the user',
+    email VARCHAR(120) NOT NULL UNIQUE COMMENT 'Email address for login',
     phone VARCHAR(20) DEFAULT NULL COMMENT 'Contact phone number',
     password VARCHAR(255) NOT NULL COMMENT 'Hashed password using password_hash()',
     role ENUM('admin', 'client') DEFAULT 'client' COMMENT 'User role for access control',

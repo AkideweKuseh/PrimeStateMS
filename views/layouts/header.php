@@ -5,13 +5,13 @@ require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../core/Helper.php';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prime Estate - Find Your Dream Home</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Syne:wght@700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script>
         tailwind.config = {
@@ -19,78 +19,105 @@ require_once __DIR__ . '/../../core/Helper.php';
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#4913ec",
-                        "primary-dark": "#370eb3",
-                        "background-light": "#f6f6f8",
-                        "background-dark": "#151022",
+                        "primary": "#EAD44C", // Luxury pale gold/yellow
+                        "primary-dark": "#D1BD3C",
+                        "charcoal": "#111111",
+                        "charcoal-medium": "#1A1A1C",
+                        "neutral-light": "#F4F4F5",
+                        "neutral-cream": "#EFEFED",
+                        "background-light": "#F4F4F5",
+                        "background-dark": "#111111",
                     },
                     fontFamily: {
-                        "display": ["Inter", "sans-serif"]
+                        "display": ["Outfit", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "arch": ["Syne", "sans-serif"]
                     },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "2xl": "0.75rem", "full": "9999px"},
                 },
             },
         }
     </script>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/style.css">
     <style>
         .hero-pattern {
-            background-image: linear-gradient(rgba(16, 28, 34, 0.6), rgba(16, 28, 34, 0.6)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuDnp5Itr32QkH9icJmdUDcQod0jKm9uN5SW9Sm2LzAUf-a6JhcWGCcq_CrV8H3a9Bw7i9kN0Gzp4l6umj6a_A92tzTUSKQFZ_IUoQTv21hHz-XjlgLRdAwyAr4iasqWgA4f9TJDOMCl5F58Ejj2jCj3xZMnHBHo1X9n903tSrnb8Fq5LA_E0fmOGVYufF1Yga-RwgqBnaytI5QX1BkDYnaJapOFYgshi4nG33hpTFG8yVqEA2t2xfMHZhz6E9FEImHlchsSjiVJTd0);
+            background-image: linear-gradient(rgba(17, 17, 17, 0.4), rgba(17, 17, 17, 0.8)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuDnp5Itr32QkH9icJmdUDcQod0jKm9uN5SW9Sm2LzAUf-a6JhcWGCcq_CrV8H3a9Bw7i9kN0Gzp4l6umj6a_A92tzTUSKQFZ_IUoQTv21hHz-XjlgLRdAwyAr4iasqWgA4f9TJDOMCl5F58Ejj2jCj3xZMnHBHo1X9n903tSrnb8Fq5LA_E0fmOGVYufF1Yga-RwgqBnaytI5QX1BkDYnaJapOFYgshi4nG33hpTFG8yVqEA2t2xfMHZhz6E9FEImHlchsSjiVJTd0);
             background-size: cover;
             background-position: center
         }
     </style>
 </head>
-<body class="font-display bg-background-light dark:bg-background-dark text-slate-800 dark:text-white antialiased">
+<body class="font-body bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 antialiased overflow-x-hidden">
 
+<?php
+$nav_bg_class = "bg-charcoal border-b border-white/5";
+if (isset($no_header_padding) && $no_header_padding) {
+    $nav_bg_class = "bg-transparent border-0";
+}
+?>
 <!-- Navigation -->
-<nav class="fixed w-full z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 transition-all duration-300">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-20 items-center">
-            <!-- Logo -->
-            <div class="flex-shrink-0 flex items-center gap-2">
-                <a href="<?php echo BASE_URL; ?>" class="flex items-center gap-2 decoration-0">
-                    <span class="material-symbols-outlined text-primary text-3xl">real_estate_agent</span>
-                    <span class="font-bold text-2xl tracking-tight text-slate-900 dark:text-white">Prime<span class="text-primary">Estate</span></span>
+<nav class="absolute w-full z-50 <?php echo $nav_bg_class; ?> transition-all duration-300">
+    <!-- Faint structural thin top layout gridline -->
+    <div class="absolute bottom-0 left-0 w-full h-px bg-white/10 z-10"></div>
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="flex justify-between md:grid md:grid-cols-3 h-32 items-center w-full">
+            <!-- Logo (Column 1) -->
+            <div class="flex items-center justify-start">
+                <a href="<?php echo BASE_URL; ?>" class="flex items-center decoration-none">
+                    <!-- Premium 3D Isometric Cube SVG Logo -->
+                    <svg viewBox="0 0 24 24" class="w-8 h-8 fill-none stroke-white stroke-[1.5]" stroke-linejoin="round">
+                        <polygon points="12,3 20,7.5 12,12 4,7.5" class="fill-white/10" />
+                        <polygon points="4,7.5 12,12 12,21 4,16.5" class="fill-white/20" />
+                        <polygon points="12,12 20,7.5 20,16.5 12,21" class="fill-white/30" />
+                    </svg>
                 </a>
             </div>
-            <!-- Desktop Menu -->
-            <div class="hidden md:flex items-center space-x-8">
-                <a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="<?php echo BASE_URL; ?>views/public/properties.php">Properties</a>
-                <a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="<?php echo BASE_URL; ?>views/public/about.php">About Us</a>
-                <a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary font-medium transition-colors" href="<?php echo BASE_URL; ?>views/public/contact.php">Contact</a>
+
+            <!-- Horizontal Inline Navigation Links (Column 2) - Matches the architectural grid alignment -->
+            <div class="hidden md:flex items-center justify-center space-x-10">
+                <a class="text-white/80 hover:text-primary font-display text-[11px] font-bold tracking-widest uppercase transition-colors" href="<?php echo BASE_URL; ?>views/public/properties.php">Properties</a>
+                <a class="text-white/80 hover:text-primary font-display text-[11px] font-bold tracking-widest uppercase transition-colors" href="<?php echo BASE_URL; ?>views/public/about.php">About Us</a>
+                <a class="text-white/80 hover:text-primary font-display text-[11px] font-bold tracking-widest uppercase transition-colors" href="<?php echo BASE_URL; ?>views/public/contact.php">Contact</a>
             </div>
-            <!-- Auth Buttons -->
-            <div class="hidden md:flex items-center space-x-4">
+
+            <!-- Auth & Pill CTA Button (Column 3) -->
+            <div class="hidden md:flex items-center justify-end space-x-6">
                 <?php if (Auth::check()): ?>
                     <?php if (Auth::isAdmin()): ?>
-                        <a href="<?php echo BASE_URL; ?>views/admin/dashboard.php" class="px-4 py-2 rounded-lg text-primary border border-primary hover:bg-primary/5 font-medium transition-colors">Dashboard</a>
+                        <a href="<?php echo BASE_URL; ?>views/admin/dashboard.php" class="font-display text-[11px] font-bold tracking-widest uppercase text-white hover:text-primary transition-colors">Dashboard</a>
                     <?php else: ?>
-                        <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="px-4 py-2 rounded-lg text-primary border border-primary hover:bg-primary/5 font-medium transition-colors">Dashboard</a>
+                        <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="font-display text-[11px] font-bold tracking-widest uppercase text-white hover:text-primary transition-colors">Dashboard</a>
                     <?php endif; ?>
-                    <a href="<?php echo BASE_URL; ?>controllers/AuthController.php?action=logout" class="px-4 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium transition-colors">Logout</a>
+                    <a href="<?php echo BASE_URL; ?>controllers/AuthController.php?action=logout" class="font-display text-[11px] font-bold tracking-widest uppercase text-red-400 hover:text-red-300 transition-colors">Logout</a>
                 <?php else: ?>
-                    <a href="<?php echo BASE_URL; ?>views/auth/login.php" class="px-4 py-2 rounded-lg text-primary hover:bg-primary/5 font-medium transition-colors">Log In</a>
-                    <a href="<?php echo BASE_URL; ?>views/auth/register.php" class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/30 font-medium transition-all transform hover:-translate-y-0.5">Register</a>
+                    <a href="<?php echo BASE_URL; ?>views/auth/login.php" class="font-display text-[11px] font-bold tracking-widest uppercase text-white/80 hover:text-white transition-colors">Log In</a>
+                    <a href="<?php echo BASE_URL; ?>views/auth/register.php" class="font-display text-[11px] font-bold tracking-widest uppercase text-white/80 hover:text-white transition-colors">Register</a>
                 <?php endif; ?>
+                
+                <a href="<?php echo BASE_URL; ?>views/public/properties.php" class="font-display text-[11px] font-semibold tracking-widest uppercase px-6 py-2.5 rounded-full bg-white text-black hover:bg-slate-100 hover:scale-105 transition-all flex items-center gap-2 shadow-md">
+                    Book a Viewing
+                    <span class="material-symbols-outlined text-sm">calendar_today</span>
+                </a>
             </div>
+
             <!-- Mobile menu button -->
-            <div class="md:hidden flex items-center">
-                <button class="text-slate-600 dark:text-white hover:text-primary p-2">
-                    <span class="material-symbols-outlined text-3xl">menu</span>
+            <div class="md:hidden flex items-center justify-end">
+                <button class="text-white hover:text-primary p-2">
+                    <span class="material-symbols-outlined text-2xl">menu</span>
                 </button>
             </div>
         </div>
     </div>
 </nav>
 
-<!-- Main Content Wrapper (Optional, to push content down below fixed nav) -->
-<div class="pt-20">
-    <!-- Flash Messages -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-        <?php 
-        $flash = Helper::getFlash();
-        if ($flash): 
-        ?>
+<!-- Main Content Wrapper (Conditionally push content down depending on landing overlay setup) -->
+<div class="<?php echo (isset($no_header_padding) && $no_header_padding) ? '' : 'pt-20'; ?>">
+    <!-- Flash Messages (Only rendered when message is present, avoiding top margin-collapse gaps) -->
+    <?php 
+    $flash = Helper::getFlash();
+    if ($flash): 
+    ?>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
             <div class="p-4 mb-4 text-sm text-<?php echo $flash['type'] === 'error' ? 'red' : 'green'; ?>-800 rounded-lg bg-<?php echo $flash['type'] === 'error' ? 'red' : 'green'; ?>-50 dark:bg-gray-800 dark:text-<?php echo $flash['type'] === 'error' ? 'red' : 'green'; ?>-400" role="alert">
                 <div class="flex items-center">
                     <span class="font-medium"><?php echo $flash['message']; ?></span>
@@ -100,6 +127,6 @@ require_once __DIR__ . '/../../core/Helper.php';
                     </button>
                 </div>
             </div>
-        <?php endif; ?>
-    </div>
-
+        </div>
+    <?php endif; ?>
+</div>

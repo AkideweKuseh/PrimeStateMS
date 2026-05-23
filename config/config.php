@@ -1,6 +1,6 @@
 <?php
 // Base URL
-define('BASE_URL', 'http://localhost/PrimeStateMS/');
+define('BASE_URL', 'http://localhost:8080/PrimeStateMS/');
 
 // Database credential constants (optional, if not using class properties directly)
 define('DB_HOST', 'localhost');

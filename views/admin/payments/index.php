@@ -103,7 +103,4 @@ require_once __DIR__ . '/../../layouts/admin-sidebar.php';
     </div>
 </div>
 
-</div> <!-- Close Main Content -->
-</div> <!-- Close Flex Container -->
-</body>
-</html>
+<?php require_once __DIR__ . '/../../layouts/admin-footer.php'; ?>

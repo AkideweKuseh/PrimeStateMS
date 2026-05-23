@@ -17,7 +17,7 @@ require_once __DIR__ . '/../../../core/Helper.php';
     </div>
 </div>
 
-<!-- Report Navigation Tabs (Simple implementation using anchor links or JS tabs) -->
+<!-- Report Navigation Tabs -->
 <div class="mb-6 border-b border-slate-200 dark:border-slate-700 print:hidden">
     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
         <button onclick="showTab('properties')" id="tab-properties" class="border-primary text-primary whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
@@ -28,6 +28,12 @@ require_once __DIR__ . '/../../../core/Helper.php';
         </button>
         <button onclick="showTab('financials')" id="tab-financials" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
             <span class="material-symbols-outlined text-lg">payments</span> Financials
+        </button>
+        <button onclick="showTab('rent')" id="tab-rent" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">receipt_long</span> Rent Tracking
+        </button>
+        <button onclick="showTab('maintenance')" id="tab-maintenance" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">build</span> Maintenance
         </button>
     </nav>
 </div>
@@ -40,7 +46,7 @@ require_once __DIR__ . '/../../../core/Helper.php';
         <div class="bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white">Property Inventory Report</h2>
-                <div class="flex gap-2 print:hidden">
+                <div class="flex gap-4 print:hidden">
                     <span class="text-sm text-slate-500">Total: <strong><?php echo $propertyStats['total']; ?></strong></span>
                 </div>
             </div>
@@ -77,7 +83,7 @@ require_once __DIR__ . '/../../../core/Helper.php';
     </div>
 
     <!-- Bookings Report -->
-    <div id="report-bookings" class="report-section hidden print:block">
+    <div id="report-bookings" class="report-section hidden">
         <div class="bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white">Booking History Report</h2>
@@ -122,7 +128,7 @@ require_once __DIR__ . '/../../../core/Helper.php';
     </div>
 
     <!-- Financial Report -->
-    <div id="report-financials" class="report-section hidden print:block">
+    <div id="report-financials" class="report-section hidden">
         <div class="bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-bold text-slate-900 dark:text-white">Financial Revenue Report</h2>
@@ -146,11 +152,122 @@ require_once __DIR__ . '/../../../core/Helper.php';
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         <?php foreach($paymentList as $payment): ?>
                         <tr>
-                            <td class="px-4 py-3 text-sm font-mono text-slate-500"><?php echo $payment['transaction_reference']; ?></td>
+                            <td class="px-4 py-3 text-sm font-mono text-slate-500"><?php echo $payment['transaction_reference'] ?? 'N/A'; ?></td>
                             <td class="px-4 py-3 text-sm text-slate-500"><?php echo Helper::formatDate($payment['payment_date']); ?></td>
                             <td class="px-4 py-3 text-sm text-slate-500"><?php echo $payment['client_name']; ?></td>
                             <td class="px-4 py-3 text-sm text-slate-500 uppercase"><?php echo $payment['payment_method']; ?></td>
                             <td class="px-4 py-3 text-sm font-bold text-right text-slate-900 dark:text-white"><?php echo Helper::formatCurrency($payment['amount']); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rent Tracking Report -->
+    <div id="report-rent" class="report-section hidden">
+        <div class="bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Rent Collection Report</h2>
+                    <p class="text-xs text-slate-500">Overview of tenant payments and arrears.</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="text-xs text-slate-500 uppercase">Total Collected</p>
+                        <p class="text-lg font-bold text-green-600"><?php echo Helper::formatCurrency($totalRentCollected); ?></p>
+                    </div>
+                    <a href="<?php echo BASE_URL; ?>controllers/ReportController.php?action=export&type=rent" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-primary transition print:hidden" title="Export CSV">
+                        <span class="material-symbols-outlined">download</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Tenant</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Property</th>
+                            <th class="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Amount Due</th>
+                            <th class="px-4 py-2 text-right text-xs font-semibold text-slate-500 uppercase">Balance</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <?php foreach($rentList as $r): ?>
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white"><?php echo $r['tenant_name']; ?></td>
+                            <td class="px-4 py-3 text-sm text-slate-500"><?php echo $r['property_title']; ?></td>
+                            <td class="px-4 py-3 text-sm text-right text-slate-600 dark:text-slate-400"><?php echo Helper::formatCurrency($r['amount']); ?></td>
+                            <td class="px-4 py-3 text-sm text-right font-bold <?php echo $r['balance'] > 0 ? 'text-red-600' : 'text-slate-500'; ?>"><?php echo Helper::formatCurrency($r['balance']); ?></td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase <?php echo $r['status'] == 'paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                    <?php echo $r['status']; ?>
+                                </span>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Report -->
+    <div id="report-maintenance" class="report-section hidden">
+        <div class="bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Maintenance & Repairs Report</h2>
+                    <p class="text-xs text-slate-500">Summary of facility requests and resolution times.</p>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex gap-4">
+                        <div class="text-center">
+                            <p class="text-[10px] text-slate-400 uppercase">Pending</p>
+                            <p class="font-bold text-yellow-600"><?php echo $maintenanceStats['pending']; ?></p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-slate-400 uppercase">Progress</p>
+                            <p class="font-bold text-blue-600"><?php echo $maintenanceStats['in_progress']; ?></p>
+                        </div>
+                    </div>
+                    <a href="<?php echo BASE_URL; ?>controllers/ReportController.php?action=export&type=maintenance" class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-primary transition print:hidden" title="Export CSV">
+                        <span class="material-symbols-outlined">download</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+                    <thead class="bg-slate-50 dark:bg-slate-800/50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Property</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Issue</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-slate-500 uppercase">Request Date</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-slate-500 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <?php foreach($maintenanceList as $m): ?>
+                        <tr>
+                            <td class="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white"><?php echo $m['property_title']; ?></td>
+                            <td class="px-4 py-3 text-sm text-slate-500 truncate max-w-xs"><?php echo $m['issue_description']; ?></td>
+                            <td class="px-4 py-3 text-sm text-slate-500"><?php echo Helper::formatDate($m['request_date']); ?></td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase <?php 
+                                    echo match($m['status']) {
+                                        'pending' => 'bg-yellow-100 text-yellow-800',
+                                        'in_progress' => 'bg-blue-100 text-blue-800',
+                                        'completed' => 'bg-green-100 text-green-800',
+                                        default => 'bg-slate-100 text-slate-800'
+                                    };
+                                ?>">
+                                    <?php echo str_replace('_', ' ', $m['status']); ?>
+                                </span>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -168,12 +285,14 @@ function showTab(tabName) {
         el.classList.add('hidden');
     });
     // Show selected
-    document.getElementById('report-' + tabName).classList.remove('hidden');
+    const selected = document.getElementById('report-' + tabName);
+    if(selected) selected.classList.remove('hidden');
     
     // Update tabs
-    const tabs = ['properties', 'bookings', 'financials'];
+    const tabs = ['properties', 'bookings', 'financials', 'rent', 'maintenance'];
     tabs.forEach(t => {
         const btn = document.getElementById('tab-' + t);
+        if(!btn) return;
         if(t === tabName) {
             btn.classList.add('border-primary', 'text-primary');
             btn.classList.remove('border-transparent', 'text-slate-500');
@@ -221,7 +340,4 @@ function showTab(tabName) {
     }
 </style>
 
-</div>
-</div>
-</body>
-</html>
+<?php require_once __DIR__ . '/../../layouts/admin-footer.php'; ?>

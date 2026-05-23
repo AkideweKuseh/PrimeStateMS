@@ -1,6 +1,88 @@
 /* 
- * Prime Estate - Custom CSS
+ * Prime Estate - Custom Premium CSS
  * 
- * This file is currently empty as we have migrated to Tailwind CSS.
- * You can add custom overrides here if necessary, but prefer using Tailwind classes.
+ * Elegant typography, layout grids, vertical architectural gridlines, 
+ * custom scrollbars, and brutalist card effects.
  */
+
+/* Import Google Fonts directly */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.01em;
+}
+
+.font-display {
+    font-family: 'Outfit', sans-serif;
+}
+
+.font-arch {
+    font-family: 'Syne', sans-serif;
+}
+
+/* Thin vertical architectural gridlines */
+.arch-gridlines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+}
+
+.arch-gridline {
+    width: 1px;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+.dark .arch-gridline {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.light-gridline {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Custom aesthetic scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #222224;
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #EAD44C;
+}
+
+/* Glassmorphism containers */
+.glass-panel {
+    background: rgba(17, 17, 17, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Blueprint Grid decoration */
+.blueprint-grid {
+    background-size: 40px 40px;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.blueprint-grid-light {
+    background-size: 30px 30px;
+    background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+}

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../core/Helper.php';
 
-Auth::requireLogin();
+Auth::requireRole('tenant');
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <!DOCTYPE html>
@@ -12,7 +12,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Dashboard - Prime Estate</title>
+    <title>Prime Estate Tenant Dashboard</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;family=Syne:wght@700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -55,7 +55,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     
     <div class="w-10 h-10 bg-primary text-black font-display font-extrabold text-[13px] rounded flex items-center justify-center border border-slate-300">
-        C
+        T
     </div>
     
     <button class="w-10 h-10 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition flex items-center justify-center">
@@ -79,39 +79,38 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
-    <!-- Navigation Links -->
+    <!-- Navigation List -->
     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'dashboard.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+        <a href="<?php echo BASE_URL; ?>views/tenant/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'dashboard.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
             <span class="material-symbols-outlined text-base">dashboard</span>
             Dashboard
         </a>
-        <a href="<?php echo BASE_URL; ?>views/public/properties.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 transition-all">
-            <span class="material-symbols-outlined text-base">explore</span>
-            Browse Properties
+        <a href="<?php echo BASE_URL; ?>views/tenant/rent.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'rent') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">payments</span>
+            My Rent
         </a>
-        <a href="<?php echo BASE_URL; ?>views/client/bookings.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'bookings.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-            <span class="material-symbols-outlined text-base">event_available</span>
-            My Bookings
+        <a href="<?php echo BASE_URL; ?>views/tenant/maintenance.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'maintenance') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">build</span>
+            Maintenance
         </a>
-        <a href="<?php echo BASE_URL; ?>views/client/payments.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'payments.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-            <span class="material-symbols-outlined text-base">receipt_long</span>
-            My Payments
-        </a>
-        <a href="<?php echo BASE_URL; ?>views/client/profile.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'profile.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-            <span class="material-symbols-outlined text-base">settings</span>
-            Profile Settings
-        </a>
+        
+        <div class="pt-4 mt-4 border-t border-slate-200">
+            <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 transition-all">
+                <span class="material-symbols-outlined text-base">search</span>
+                Browse Listings
+            </a>
+        </div>
     </nav>
 
     <!-- Sidebar Profile Details -->
     <div class="p-4 border-t border-slate-200">
         <div class="flex items-center gap-3">
             <div class="relative">
-                <img alt="Client Profile" class="w-8 h-8 rounded-sm object-cover" src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'Client'); ?>&background=EAD44C&color=000000"/>
+                <img alt="Tenant Profile" class="w-8 h-8 rounded-sm object-cover" src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'Tenant'); ?>&background=EAD44C&color=000000"/>
             </div>
             <div class="truncate">
-                <h3 class="text-xs font-bold text-slate-900 truncate"><?php echo $_SESSION['user_name'] ?? 'Client'; ?></h3>
-                <p class="text-[9px] text-slate-400 tracking-wider font-display uppercase font-bold">Client</p>
+                <h3 class="text-xs font-bold text-slate-900 truncate"><?php echo $_SESSION['user_name'] ?? 'Tenant'; ?></h3>
+                <p class="text-[9px] text-slate-400 tracking-wider font-display uppercase font-bold">Tenant</p>
             </div>
         </div>
     </div>
@@ -126,29 +125,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="material-symbols-outlined">menu</span>
         </button>
 
-        <!-- Search Bar -->
-        <div class="hidden md:flex flex-1 max-w-sm relative">
-            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span class="material-symbols-outlined text-slate-400 text-sm">search</span>
-            </span>
-            <input type="text" class="block w-full pl-9 pr-3 py-1.5 border border-slate-200 rounded text-slate-900 bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300 focus:border-slate-300 text-xs" placeholder="Search..." />
-        </div>
-
-        <?php
-        require_once __DIR__ . '/../../models/Notification.php';
-        $notificationModel = new Notification();
-        $unreadCount = $notificationModel->countUnread($_SESSION['user_id']);
-        ?>
-        <!-- Header Controls -->
-        <div class="flex items-center gap-4 ml-4">
-            <a href="<?php echo BASE_URL; ?>views/client/notifications.php" class="relative p-2 text-slate-500 hover:text-slate-900 transition-colors rounded hover:bg-slate-100">
-                <span class="material-symbols-outlined text-base">notifications</span>
-                <?php if ($unreadCount > 0): ?>
-                <span class="absolute top-1 right-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-black border border-white">
-                    <?php echo $unreadCount > 9 ? '9' : $unreadCount; ?>
-                </span>
-                <?php endif; ?>
-            </a>
+        <div class="flex items-center gap-4 ml-auto">
+            <span class="text-xs font-bold text-slate-900 font-display uppercase tracking-widest bg-slate-200/80 px-2.5 py-1 rounded-sm border border-slate-300"><?php echo $_SESSION['user_name'] ?? 'Tenant'; ?></span>
             
             <a href="<?php echo BASE_URL; ?>controllers/AuthController.php?action=logout" class="text-slate-500 hover:text-red-600 transition-colors flex items-center justify-center p-2 rounded hover:bg-red-50">
                 <span class="material-symbols-outlined text-base">logout</span>
@@ -158,19 +136,3 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <!-- Content Area Container -->
     <main class="flex-1 overflow-y-auto bg-background-light p-6 relative">
-        
-        <?php 
-        require_once __DIR__ . '/../../core/Helper.php';
-        $flash = Helper::getFlash();
-        if ($flash): 
-        ?>
-            <div class="mb-6 p-4 rounded flex items-center justify-between <?php echo $flash['type'] === 'error' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'; ?> text-xs font-semibold">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm"><?php echo $flash['type'] === 'error' ? 'error' : 'check_circle'; ?></span>
-                    <?php echo $flash['message']; ?>
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-current hover:opacity-75">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                </button>
-            </div>
-        <?php endif; ?>

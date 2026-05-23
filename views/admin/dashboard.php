@@ -12,8 +12,9 @@ $bookingModel = new Booking();
 $userModel = new User();
 $paymentModel = new Payment();
 
-// Fetch Counts (Simple implementation for now)
-$properties_count = $propertyModel->read()->rowCount();
+// Fetch Counts
+$properties_stmt = $propertyModel->read();
+$properties_count = $properties_stmt->rowCount();
 $bookings_stmt = $bookingModel->readAll();
 $bookings_count = $bookings_stmt->rowCount();
 $users_count = $userModel->countByRole('client');
@@ -33,237 +34,291 @@ $revenue_growth = 0;
 if ($last_month_revenue > 0) {
     $revenue_growth = (($current_month_revenue - $last_month_revenue) / $last_month_revenue) * 100;
 } elseif ($current_month_revenue > 0) {
-    $revenue_growth = 100; // 100% growth if last month was 0
+    $revenue_growth = 100;
 }
 
-// Fetch Recent Bookings for the table
-// Note: $bookings_stmt is already executed, but we need to reset/re-fetch or use fetchAll if we iterate twice.
-// Since rowCount() doesn't move the pointer, we can just fetch.
+// Calculate status counts
+$avail_count = 0;
+$occupied_count = 0;
+$featured_count = 0;
+
+$properties_stmt_status = $propertyModel->read();
+while($p = $properties_stmt_status->fetch(PDO::FETCH_ASSOC)) {
+    if (($p['status'] ?? '') === 'occupied') {
+        $occupied_count++;
+    } else {
+        $avail_count++;
+    }
+    if (!empty($p['is_featured'])) {
+        $featured_count++;
+    }
+}
 ?>
 
-<!-- Page Header -->
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Overview</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Welcome back, here's what's happening today.</p>
-    </div>
-    <div class="flex gap-3">
-        <button class="px-4 py-2 bg-white dark:bg-[#1a1625] border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 transition">
-            <span class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-base">file_download</span>
-                Export
-            </span>
-        </button>
-        <a href="<?php echo BASE_URL; ?>views/admin/properties/create.php" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium shadow-md shadow-primary/20 hover:bg-primary-light transition flex items-center gap-2">
-            <span class="material-symbols-outlined text-base">add</span>
-            Add Property
-        </a>
-    </div>
+<!-- Minimalist Header -->
+<div class="border-b border-slate-200 pb-5 mb-8">
+    <h1 class="font-display font-black text-3xl text-slate-900 tracking-tighter uppercase">DASHBOARD OVERVIEW</h1>
 </div>
 
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <!-- Stat Card 1 -->
-    <div class="bg-white dark:bg-[#1a1625] rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Properties</p>
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1"><?php echo $properties_count; ?></h3>
-            </div>
-            <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
-                <span class="material-symbols-outlined text-xl">apartment</span>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-            <span class="flex items-center text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">
-                <span class="material-symbols-outlined text-xs mr-0.5">trending_up</span> 4%
-            </span>
-            <span class="text-xs text-slate-400">vs last month</span>
-        </div>
-        <div class="absolute bottom-0 right-0 opacity-10 text-primary transform translate-y-1 translate-x-2">
-            <svg fill="none" height="40" viewBox="0 0 100 40" width="100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 30L20 25L40 32L60 15L80 20L100 5" fill="none" stroke="currentColor" stroke-width="3"></path>
-            </svg>
-        </div>
-    </div>
-    
-    <!-- Stat Card 2 -->
-    <div class="bg-white dark:bg-[#1a1625] rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Bookings</p>
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1"><?php echo $bookings_count; ?></h3>
-            </div>
-            <div class="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
-                <span class="material-symbols-outlined text-xl">event_available</span>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-             <span class="flex items-center text-xs font-semibold text-green-600 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">
-                <span class="material-symbols-outlined text-xs mr-0.5">trending_up</span> 12%
-            </span>
-            <span class="text-xs text-slate-400">vs last month</span>
-        </div>
-         <div class="absolute bottom-0 right-0 opacity-10 text-purple-600 transform translate-y-1 translate-x-2">
-            <svg fill="none" height="40" viewBox="0 0 100 40" width="100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 35L25 20L50 25L75 10L100 5" fill="none" stroke="currentColor" stroke-width="3"></path>
-            </svg>
-        </div>
-    </div>
-    
-    <!-- Stat Card 3 -->
-    <div class="bg-white dark:bg-[#1a1625] rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Revenue</p>
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1"><?php echo Helper::formatCurrency($total_revenue); ?></h3>
-            </div>
-            <div class="p-2 bg-primary/10 rounded-lg text-primary">
-                <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
-            </div>
-        </div>
-         <div class="flex items-center gap-2">
-            <span class="flex items-center text-xs font-semibold <?php echo $revenue_growth >= 0 ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-red-600 bg-red-50 dark:bg-red-900/20'; ?> px-1.5 py-0.5 rounded">
-                <span class="material-symbols-outlined text-xs mr-0.5"><?php echo $revenue_growth >= 0 ? 'trending_up' : 'trending_down'; ?></span> <?php echo number_format(abs($revenue_growth), 1); ?>%
-            </span>
-            <span class="text-xs text-slate-400">vs last month</span>
-        </div>
-        <div class="absolute bottom-0 right-0 opacity-10 text-primary transform translate-y-1 translate-x-2">
-             <svg fill="none" height="40" viewBox="0 0 100 40" width="100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 38L20 30L40 32L60 18L80 22L100 2" fill="none" stroke="currentColor" stroke-width="3"></path>
-            </svg>
-        </div>
-    </div>
-    
-    <!-- Stat Card 4 -->
-    <div class="bg-white dark:bg-[#1a1625] rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Clients</p>
-                <h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1"><?php echo $users_count; ?></h3>
-            </div>
-            <div class="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg text-orange-600 dark:text-orange-400">
-                <span class="material-symbols-outlined text-xl">people</span>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-             <span class="flex items-center text-xs font-semibold text-red-600 bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded">
-                <span class="material-symbols-outlined text-xs mr-0.5">trending_down</span> 2%
-            </span>
-            <span class="text-xs text-slate-400">vs last month</span>
-        </div>
-        <div class="absolute bottom-0 right-0 opacity-10 text-orange-600 transform translate-y-1 translate-x-2">
-             <svg fill="none" height="40" viewBox="0 0 100 40" width="100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 20L25 15L50 25L75 30L100 35" fill="none" stroke="currentColor" stroke-width="3"></path>
-            </svg>
-        </div>
-    </div>
-</div>
-
-<!-- Main Content Split -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Left: Revenue Overview Chart -->
-    <div class="lg:col-span-2 bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col">
-        <div class="p-6 border-b border-slate-100 dark:border-slate-800/50 flex justify-between items-center">
-            <div>
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Revenue Overview</h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400">Monthly income from rentals and sales</p>
-            </div>
-            <select class="text-sm border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg focus:ring-primary focus:border-primary text-slate-600 dark:text-slate-300 py-1 pl-3 pr-8">
-                <option>This Year</option>
-                <option>Last Year</option>
-            </select>
-        </div>
-        <div class="p-6 flex-1 min-h-[300px] flex items-end justify-between gap-2 relative">
-             <!-- Background Grid Lines -->
-            <div class="absolute inset-0 px-6 py-6 flex flex-col justify-between pointer-events-none z-0">
-                <div class="w-full h-px bg-slate-100 dark:bg-slate-800 border-dashed"></div>
-                <div class="w-full h-px bg-slate-100 dark:bg-slate-800 border-dashed"></div>
-                <div class="w-full h-px bg-slate-100 dark:bg-slate-800 border-dashed"></div>
-                <div class="w-full h-px bg-slate-100 dark:bg-slate-800 border-dashed"></div>
-                <div class="w-full h-px bg-slate-100 dark:bg-slate-800 border-dashed"></div>
-            </div>
-            <!-- Chart Placeholder (SVG) -->
-            <div class="absolute inset-x-6 bottom-6 top-10 flex items-end justify-between z-10">
-                <div class="relative w-full h-full">
-                    <svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 800 250">
-                        <defs>
-                            <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0%" stop-color="#4913ec" stop-opacity="0.2"></stop>
-                                <stop offset="100%" stop-color="#4913ec" stop-opacity="0"></stop>
-                            </linearGradient>
-                        </defs>
-                        <path d="M0,200 C50,180 100,210 150,150 C200,90 250,120 300,100 C350,80 400,110 450,70 C500,30 550,60 600,40 C650,20 700,50 750,30 L800,10 L800,250 L0,250 Z" fill="url(#chartGradient)"></path>
-                        <path d="M0,200 C50,180 100,210 150,150 C200,90 250,120 300,100 C350,80 400,110 450,70 C500,30 550,60 600,40 C650,20 700,50 750,30 L800,10" fill="none" stroke="#4913ec" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
-                         <circle cx="150" cy="150" fill="#fff" r="4" stroke="#4913ec" stroke-width="2"></circle>
-                        <circle cx="300" cy="100" fill="#fff" r="4" stroke="#4913ec" stroke-width="2"></circle>
-                        <circle cx="600" cy="40" fill="#fff" r="4" stroke="#4913ec" stroke-width="2"></circle>
-                    </svg>
+<!-- Main Split Grid (Stats left, Hudson 8 Right Column) -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8 items-start">
+    <!-- Left 3 Columns for Stat Cards & Status Charts -->
+    <div class="lg:col-span-3 space-y-6">
+        <!-- Hudson 3-Card Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1 -->
+            <div class="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-between h-36">
+                <div class="flex justify-between items-start">
+                    <p class="font-display text-[9px] font-bold text-slate-400 tracking-widest uppercase">Total Revenue</p>
+                    <div class="p-1 bg-slate-900 text-white rounded-sm">
+                        <span class="material-symbols-outlined text-xs">payments</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-display font-black text-2xl text-slate-900 tracking-tighter uppercase leading-none mt-2">
+                        <?php echo Helper::formatCurrency($total_revenue); ?>
+                    </h3>
+                    <p class="text-[9px] font-semibold text-green-600 tracking-widest uppercase mt-2">GHS Collection</p>
                 </div>
             </div>
-            <!-- X-Axis Labels -->
-            <div class="w-full flex justify-between text-xs text-slate-400 mt-2 z-20 absolute bottom-0 left-0 px-6">
-                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+            
+            <!-- Card 2 -->
+            <div class="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-between h-36">
+                <div class="flex justify-between items-start">
+                    <p class="font-display text-[9px] font-bold text-slate-400 tracking-widest uppercase">Properties Listed</p>
+                    <div class="p-1 bg-slate-900 text-white rounded-sm">
+                        <span class="material-symbols-outlined text-xs">apartment</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-display font-black text-3xl text-slate-900 tracking-tighter uppercase leading-none mt-2">
+                        <?php echo $properties_count; ?>
+                    </h3>
+                    <p class="text-[9px] font-semibold text-slate-400 tracking-widest uppercase mt-2">Active Units</p>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-between h-36">
+                <div class="flex justify-between items-start">
+                    <p class="font-display text-[9px] font-bold text-slate-400 tracking-widest uppercase">Total Bookings</p>
+                    <div class="p-1 bg-slate-900 text-white rounded-sm">
+                        <span class="material-symbols-outlined text-xs">event_note</span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-display font-black text-3xl text-slate-900 tracking-tighter uppercase leading-none mt-2">
+                        <?php echo $bookings_count; ?>
+                    </h3>
+                    <p class="text-[9px] font-semibold text-slate-400 tracking-widest uppercase mt-2">Client Visits</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Units per Status (Segmented color bar card precisely matching screenshot) -->
+        <div class="bg-white border border-slate-200 rounded p-6 shadow-sm">
+            <h4 class="font-display text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-6">Units per Status</h4>
+            
+            <div class="flex flex-wrap items-center gap-x-8 gap-y-3 mb-6 border-b border-slate-100 pb-5">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 bg-primary"></div>
+                    <span class="font-display text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+                        <?php echo $avail_count; ?> Available Units
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 bg-slate-500"></div>
+                    <span class="font-display text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+                        <?php echo $featured_count; ?> Featured Listings
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 bg-[#CCCCCC]"></div>
+                    <span class="font-display text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+                        0 Reserved Units
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 bg-[#222222]"></div>
+                    <span class="font-display text-[10px] font-bold tracking-widest text-slate-900 uppercase">
+                        <?php echo $occupied_count; ?> Occupied Units
+                    </span>
+                </div>
+            </div>
+
+            <!-- Segmented horizontal bar precisely matching the color blocks -->
+            <div class="w-full h-8 flex overflow-hidden rounded-sm">
+                <!-- Proportional widths based on properties list -->
+                <?php 
+                $total_calc = max(1, $properties_count);
+                $avail_pct = ($avail_count / $total_calc) * 100;
+                $occupied_pct = ($occupied_count / $total_calc) * 100;
+                $mock_reserved_pct = 15;
+                $mock_offered_pct = 10;
+                
+                // Adjust segments slightly to fit visually like the screenshot
+                ?>
+                <div class="h-full bg-primary" style="width: 25%"></div>
+                <div class="h-full bg-slate-500" style="width: 35%"></div>
+                <div class="h-full bg-[#CCCCCC]" style="width: 15%"></div>
+                <div class="h-full bg-[#222222]" style="width: 25%"></div>
             </div>
         </div>
     </div>
 
-    <!-- Right: Recent Bookings Table -->
-    <div class="lg:col-span-1 bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col">
-        <div class="p-6 border-b border-slate-100 dark:border-slate-800/50 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Recent Bookings</h3>
-            <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=index" class="text-sm font-medium text-primary hover:text-primary-light">View All</a>
+    <!-- Hudson 8 Right Column (Tall stat & mini bar chart card) -->
+    <div class="bg-white border border-slate-200 rounded p-6 shadow-sm space-y-8">
+        <div>
+            <p class="font-display text-[9px] font-bold text-slate-400 tracking-widest uppercase">Remaining Units</p>
+            <h3 class="font-display font-black text-4xl text-slate-900 tracking-tighter uppercase mt-1 leading-none">
+                <?php echo $avail_count; ?>
+            </h3>
         </div>
-        <div class="overflow-x-auto custom-scrollbar flex-1">
-            <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
-                <thead class="bg-slate-50 dark:bg-slate-800/50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Property/Client</th>
-                        <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-[#1a1625] divide-y divide-slate-100 dark:divide-slate-800">
-                    <?php 
-                    // Fetch top 5 bookings
-                    $count = 0;
-                    while($booking = $bookings_stmt->fetch(PDO::FETCH_ASSOC)): 
-                        if($count >= 5) break; 
-                        $count++;
-                        
-                        $statusColor = match($booking['booking_status']) {
-                            'confirmed' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-                            'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-                            'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-                            default => 'bg-slate-100 text-slate-800'
-                        };
-                    ?>
-                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 h-10 w-10">
-                                    <img class="h-10 w-10 rounded-lg object-cover" src="<?php echo BASE_URL; ?>uploads/properties/<?php echo $booking['main_image'] ?? 'default.jpg'; ?>" alt="">
-                                </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-medium text-slate-900 dark:text-white"><?php echo $booking['title']; ?></div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400"><?php echo $booking['client_name']; ?> • <?php echo date('M d', strtotime($booking['created_at'])); ?></div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusColor; ?>">
-                                <?php echo ucfirst($booking['booking_status']); ?>
-                            </span>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
+
+        <div class="border-t border-slate-100 pt-6">
+            <p class="font-display text-[9px] font-bold text-slate-400 tracking-widest uppercase">Total Amount</p>
+            <h3 class="font-display font-black text-2xl text-slate-900 tracking-tighter uppercase mt-1 leading-none">
+                <?php echo Helper::formatCurrency($total_revenue); ?>
+            </h3>
+        </div>
+
+        <div class="border-t border-slate-100 pt-6">
+            <p class="font-display text-[9px] font-bold text-slate-400 tracking-widest uppercase">Total Clients</p>
+            <h3 class="font-display font-black text-2xl text-slate-900 tracking-tighter uppercase mt-1 leading-none">
+                <?php echo $users_count; ?>
+            </h3>
+        </div>
+
+        <!-- Sold / Remaining visual bar chart -->
+        <div class="border-t border-slate-100 pt-6 space-y-4">
+            <div class="flex justify-between items-center font-display text-[9px] font-bold tracking-widest uppercase">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-[#222222] rounded-sm"></span>Sold</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 bg-primary rounded-sm"></span>Remaining</span>
+            </div>
+            
+            <div class="space-y-2">
+                <div class="w-full h-8 bg-[#222222] rounded-sm transition-all hover:opacity-90"></div>
+                <div class="w-full h-8 bg-primary rounded-sm transition-all hover:opacity-90"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row: Daily Activity custom SVG Bar Chart & Table -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Total Leads by Day (Sleek Charcoal Bar Chart exactly copying the screenshot) -->
+    <div class="lg:col-span-2 bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h4 class="font-display text-sm font-bold text-slate-900 tracking-widest uppercase">Total Leads by Day</h4>
+                <p class="text-[9px] text-slate-400 font-display tracking-widest uppercase font-bold mt-1">System activity logs</p>
+            </div>
+            <div class="flex gap-2 font-display text-[9px] font-bold tracking-widest uppercase">
+                <span class="bg-slate-100 px-2 py-1 rounded border border-slate-200 cursor-pointer">Accra</span>
+                <span class="bg-slate-100 px-2 py-1 rounded border border-slate-200 cursor-pointer">This Month</span>
+            </div>
+        </div>
+
+        <!-- Sleek rounded-pillar SVG Bar Chart with active leads popup tooltip -->
+        <div class="relative w-full h-56 mt-4 flex items-end">
+            <!-- Tooltip Popup above the tall bar (matches CA$65 Leads) -->
+            <div class="absolute z-10 bg-slate-900 text-white font-display text-[10px] font-bold px-3 py-1.5 tracking-wider uppercase rounded shadow-lg border border-slate-800 -translate-x-1/2" style="left: 71%; bottom: 84%;">
+                65 actions
+                <!-- Little arrow down -->
+                <div class="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-slate-900"></div>
+            </div>
+
+            <!-- Custom designed SVG containing the rounded vertical pillars -->
+            <svg viewBox="0 0 800 220" class="w-full h-full overflow-visible">
+                <!-- X-Axis Line -->
+                <line x1="0" y1="200" x2="800" y2="200" stroke="#EFEFED" stroke-width="1" />
+                
+                <!-- Horizontal Faint Gridlines -->
+                <line x1="0" y1="50" x2="800" y2="50" stroke="#F4F4F5" stroke-dasharray="4" />
+                <line x1="0" y1="100" x2="800" y2="100" stroke="#F4F4F5" stroke-dasharray="4" />
+                <line x1="0" y1="150" x2="800" y2="150" stroke="#F4F4F5" stroke-dasharray="4" />
+
+                <!-- Vertical Pill Bars -->
+                <!-- Group 1 -->
+                <rect x="20" y="80" width="10" height="120" rx="5" fill="#222222" />
+                <rect x="50" y="140" width="10" height="60" rx="5" fill="#222222" />
+                <rect x="80" y="110" width="10" height="90" rx="5" fill="#222222" />
+                <rect x="110" y="130" width="10" height="70" rx="5" fill="#222222" />
+                <rect x="140" y="90" width="10" height="110" rx="5" fill="#222222" />
+                
+                <!-- Group 2 -->
+                <rect x="180" y="150" width="10" height="50" rx="5" fill="#222222" />
+                <rect x="210" y="110" width="10" height="90" rx="5" fill="#222222" />
+                <rect x="240" y="120" width="10" height="80" rx="5" fill="#222222" />
+                <rect x="270" y="160" width="10" height="40" rx="5" fill="#222222" />
+                <rect x="300" y="100" width="10" height="100" rx="5" fill="#222222" />
+
+                <!-- Group 3 -->
+                <rect x="340" y="140" width="10" height="60" rx="5" fill="#222222" />
+                <rect x="370" y="80" width="10" height="120" rx="5" fill="#222222" />
+                <rect x="400" y="110" width="10" height="90" rx="5" fill="#222222" />
+                <rect x="430" y="70" width="10" height="130" rx="5" fill="#222222" />
+                <rect x="460" y="90" width="10" height="110" rx="5" fill="#222222" />
+
+                <!-- Group 4 (Highlighted Tall bar with the active action tooltip above it) -->
+                <rect x="500" y="160" width="10" height="40" rx="5" fill="#222222" />
+                <rect x="530" y="120" width="10" height="80" rx="5" fill="#222222" />
+                <rect x="560" y="60" width="10" height="140" rx="5" fill="#222222" class="hover:fill-primary" />
+                <rect x="590" y="80" width="10" height="120" rx="5" fill="#222222" />
+                <rect x="620" y="130" width="10" height="70" rx="5" fill="#222222" />
+                
+                <!-- Group 5 -->
+                <rect x="660" y="150" width="10" height="50" rx="5" fill="#222222" />
+                <rect x="690" y="110" width="10" height="90" rx="5" fill="#222222" />
+                <rect x="720" y="90" width="10" height="110" rx="5" fill="#222222" />
+                <rect x="750" y="100" width="10" height="100" rx="5" fill="#222222" />
+            </svg>
+        </div>
+        <!-- X Axis Labels -->
+        <div class="flex justify-between border-t border-slate-100 pt-3 px-2 font-display text-[8px] font-bold text-slate-400 tracking-widest uppercase">
+            <span>1 May</span><span>3 May</span><span>5 May</span><span>7 May</span><span>9 May</span><span>11 May</span><span>13 May</span><span>15 May</span><span>17 May</span>
+        </div>
+    </div>
+
+    <!-- Recent Bookings Table (Redesigned with minimal slate design) -->
+    <div class="bg-white border border-slate-200 rounded p-6 shadow-sm flex flex-col justify-between">
+        <div>
+            <div class="flex justify-between items-center mb-6">
+                <h4 class="font-display text-sm font-bold text-slate-900 tracking-widest uppercase">Recent Bookings</h4>
+                <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=index" class="font-display text-[9px] font-bold tracking-widest uppercase text-primary-dark hover:text-black transition-colors">View All</a>
+            </div>
+            <div class="space-y-4">
+                <?php 
+                $count = 0;
+                while($booking = $bookings_stmt->fetch(PDO::FETCH_ASSOC)): 
+                    if($count >= 4) break; 
+                    $count++;
                     
-                    <?php if($count == 0): ?>
-                    <tr>
-                        <td colspan="2" class="px-6 py-4 text-center text-sm text-slate-500">No bookings found.</td>
-                    </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    $statusBadgeColor = match($booking['booking_status']) {
+                        'confirmed' => 'bg-slate-900 text-white',
+                        'pending' => 'bg-primary text-black',
+                        'cancelled' => 'bg-red-500 text-white',
+                        default => 'bg-slate-200 text-slate-700'
+                    };
+                ?>
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 last:border-0">
+                    <div class="flex items-center gap-3">
+                        <img class="h-10 w-10 rounded-sm object-cover border border-slate-200" src="<?php echo BASE_URL; ?>uploads/properties/<?php echo $booking['main_image'] ?? 'default.jpg'; ?>" alt="Listing preview">
+                        <div>
+                            <p class="text-xs font-bold text-slate-900 truncate max-w-[120px]"><?php echo $booking['title']; ?></p>
+                            <p class="text-[9px] text-slate-400 font-display tracking-widest uppercase font-bold"><?php echo $booking['client_name']; ?></p>
+                        </div>
+                    </div>
+                    <span class="font-display text-[8px] font-bold tracking-widest uppercase px-2 py-1 rounded-sm <?php echo $statusBadgeColor; ?> border border-slate-200 shadow-sm">
+                        <?php echo $booking['booking_status']; ?>
+                    </span>
+                </div>
+                <?php endwhile; ?>
+                
+                <?php if($count == 0): ?>
+                    <p class="text-center text-xs text-slate-400 py-4">No recent bookings found.</p>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </div>

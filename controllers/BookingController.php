@@ -76,13 +76,68 @@ class BookingController {
         }
     }
     public function confirm() {
-        Auth::requireAdmin();
+        Auth::requireRole('admin', 'manager');
         if (isset($_GET['id'])) {
-            $booking = new Booking();
-            if ($booking->confirm($_GET['id'])) {
-                Helper::setFlash('success', 'Booking confirmed successfully.');
+            $bookingModel = new Booking();
+            $booking = $bookingModel->readOne($_GET['id']);
+            
+            if ($booking) {
+                if ($bookingModel->confirm($_GET['id'])) {
+                    
+                    // If it's a rental property, convert client to tenant
+                    $propertyModel = new Property();
+                    $propertyModel->id = $booking['property_id'];
+                    $propData = $propertyModel->readOne();
+                    
+                    if ($propData['listing_type'] === 'rent') {
+                        // 1. Create Tenant record
+                        require_once __DIR__ . '/../models/Tenant.php';
+                        $tenantModel = new Tenant();
+                        $tenantData = [
+                            'user_id' => $booking['client_id'],
+                            'property_id' => $booking['property_id'],
+                            'contact_info' => $booking['client_phone'],
+                            'lease_start' => $booking['start_date'],
+                            'lease_end' => $booking['end_date'] ?? date('Y-m-d', strtotime('+1 year', strtotime($booking['start_date'])))
+                        ];
+                        $tenantModel->create($tenantData);
+                        
+                        // 2. Update Property status to occupied
+                        $propertyModel->title = $propData['title'];
+                        $propertyModel->description = $propData['description'];
+                        $propertyModel->property_type = $propData['property_type'];
+                        $propertyModel->listing_type = $propData['listing_type'];
+                        $propertyModel->price = $propData['price'];
+                        $propertyModel->address = $propData['address'];
+                        $propertyModel->city = $propData['city'];
+                        $propertyModel->state = $propData['state'];
+                        $propertyModel->zip_code = $propData['zip_code'];
+                        $propertyModel->bedrooms = $propData['bedrooms'];
+                        $propertyModel->bathrooms = $propData['bathrooms'];
+                        $propertyModel->area_sqft = $propData['area_sqft'];
+                        $propertyModel->is_featured = $propData['is_featured'];
+                        $propertyModel->main_image = $propData['main_image'];
+                        $propertyModel->status = 'occupied';
+                        $propertyModel->update();
+                        
+                        // 3. Update User role to tenant
+                        require_once __DIR__ . '/../models/User.php';
+                        $userModel = new User();
+                        $userData = $userModel->readOne($booking['client_id']);
+                        $userModel->update($booking['client_id'], [
+                            'full_name' => $userData['full_name'],
+                            'email' => $userData['email'],
+                            'phone' => $userData['phone'],
+                            'role' => 'tenant'
+                        ]);
+                    }
+                    
+                    Helper::setFlash('success', 'Booking confirmed and tenant created.');
+                } else {
+                    Helper::setFlash('error', 'Failed to confirm booking.');
+                }
             } else {
-                Helper::setFlash('error', 'Failed to confirm booking.');
+                Helper::setFlash('error', 'Booking not found.');
             }
         }
         Helper::redirect('views/admin/bookings/index.php');

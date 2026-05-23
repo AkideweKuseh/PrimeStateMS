@@ -67,8 +67,11 @@ class AuthController {
             $user = new User();
             $activity = new Activity();
             
-            $email = $_POST['email'];
+            $email = trim($_POST['email']);
             $password = $_POST['password'];
+
+            // Store email in session to preserve input
+            $_SESSION['old_email'] = $email;
 
             if ($user->login($email, $password)) {
                 if (session_status() === PHP_SESSION_NONE) session_start();
@@ -77,11 +80,18 @@ class AuthController {
                 $_SESSION['user_email'] = $user->email;
                 $_SESSION['user_role'] = $user->role;
 
+                // Clear old input on success
+                unset($_SESSION['old_email']);
+
                 // Log Activity
                 $activity->log($user->id, "Logged in to the system.", "auth");
 
                 if ($user->role === 'admin') {
                     Helper::redirect('views/admin/dashboard.php');
+                } elseif ($user->role === 'manager') {
+                    Helper::redirect('views/manager/dashboard.php');
+                } elseif ($user->role === 'tenant') {
+                    Helper::redirect('views/tenant/dashboard.php');
                 } else {
                     Helper::redirect('views/client/dashboard.php');
                 }

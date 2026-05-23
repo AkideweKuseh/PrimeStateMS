@@ -13,6 +13,16 @@ class Auth {
         return self::check() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
     }
 
+    // Check if user is manager
+    public static function isManager() {
+        return self::check() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'manager';
+    }
+
+    // Check if user is tenant
+    public static function isTenant() {
+        return self::check() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'tenant';
+    }
+
     // Check if user is client
     public static function isClient() {
         return self::check() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'client';
@@ -41,11 +51,17 @@ class Auth {
         }
     }
 
+    // Require specific role(s)
+    public static function requireRole(...$roles) {
+        self::requireLogin();
+        if (!isset($_SESSION['user_role']) || !in_array($_SESSION['user_role'], $roles)) {
+            Helper::redirect('index.php'); // Or a 403 page if exists
+        }
+    }
+
     // Require admin (redirect if not)
     public static function requireAdmin() {
-        if (!self::isAdmin()) {
-            Helper::redirect('views/errors/403.php');
-        }
+        self::requireRole('admin');
     }
 }
 ?>
