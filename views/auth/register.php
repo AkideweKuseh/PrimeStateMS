@@ -100,6 +100,16 @@ require_once __DIR__ . '/../../config/config.php';
                 </div>
 
                 <!-- Flash Messages / Errors -->
+                <?php 
+                require_once __DIR__ . '/../../core/Helper.php';
+                $flash = Helper::getFlash();
+                if ($flash): 
+                ?>
+                    <div class="mb-6 p-4 rounded-none text-xs font-semibold <?php echo $flash['type'] === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'; ?>">
+                        <?php echo $flash['message']; ?>
+                    </div>
+                <?php endif; ?>
+
                 <?php if(isset($_SESSION['errors'])): ?>
                     <div class="mb-6 p-4 rounded-none text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
                         <ul class="list-disc list-inside">
