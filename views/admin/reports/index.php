@@ -1,5 +1,9 @@
 <?php 
-require_once __DIR__ . '/../../layouts/admin-sidebar.php'; 
+if (Auth::isAdmin()) {
+    require_once __DIR__ . '/../../layouts/admin-sidebar.php'; 
+} else {
+    require_once __DIR__ . '/../../layouts/manager-sidebar.php'; 
+}
 require_once __DIR__ . '/../../../core/Helper.php';
 ?>
 

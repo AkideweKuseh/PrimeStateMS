@@ -74,31 +74,54 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Segmented Toggle Option -->
     <div class="px-5 py-4 border-b border-slate-200/50">
         <div class="bg-slate-200/80 p-0.5 rounded flex text-center font-display text-[9px] font-bold tracking-widest uppercase">
-            <div class="flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer">General</div>
-            <div class="flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer">System</div>
+            <div id="sidebar-toggle-general" class="flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer transition-all">General</div>
+            <div id="sidebar-toggle-system" class="flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer transition-all">System</div>
         </div>
     </div>
 
     <!-- Navigation List -->
     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <a href="<?php echo BASE_URL; ?>views/tenant/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'dashboard.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-            <span class="material-symbols-outlined text-base">dashboard</span>
-            Dashboard
-        </a>
-        <a href="<?php echo BASE_URL; ?>views/tenant/rent.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'rent') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-            <span class="material-symbols-outlined text-base">payments</span>
-            My Rent
-        </a>
-        <a href="<?php echo BASE_URL; ?>views/tenant/maintenance.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'maintenance') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
-            <span class="material-symbols-outlined text-base">build</span>
-            Maintenance
-        </a>
-        
-        <div class="pt-4 mt-4 border-t border-slate-200">
-            <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 transition-all">
-                <span class="material-symbols-outlined text-base">search</span>
-                Browse Listings
+        <div id="nav-group-general" class="space-y-1">
+            <a href="<?php echo BASE_URL; ?>views/tenant/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo $current_page == 'dashboard.php' ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+                <span class="material-symbols-outlined text-base">dashboard</span>
+                Dashboard
             </a>
+            <a href="<?php echo BASE_URL; ?>views/tenant/rent.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'rent') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+                <span class="material-symbols-outlined text-base">payments</span>
+                My Rent
+            </a>
+            <a href="<?php echo BASE_URL; ?>views/tenant/maintenance.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'maintenance') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+                <span class="material-symbols-outlined text-base">build</span>
+                Maintenance
+            </a>
+            
+            <div class="pt-4 mt-4 border-t border-slate-200">
+                <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 transition-all">
+                    <span class="material-symbols-outlined text-base">search</span>
+                    Browse Listings
+                </a>
+            </div>
+        </div>
+
+        <div id="nav-group-system" class="space-y-4 hidden px-3 py-2">
+            <div>
+                <p class="text-[9px] font-bold font-display text-slate-400 uppercase tracking-widest mb-1.5">Tenant Portal Status</p>
+                <div class="p-3 bg-white border border-slate-200 rounded-sm">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
+                        <span class="font-display text-[9px] font-bold tracking-wider text-slate-800 uppercase">Operational</span>
+                    </div>
+                    <p class="text-[8px] text-slate-400 leading-normal">Your tenant session is active and linked securely to the property manager.</p>
+                </div>
+            </div>
+            <div>
+                <p class="text-[9px] font-bold font-display text-slate-400 uppercase tracking-widest mb-1.5">Tenant Info</p>
+                <div class="p-3 bg-white border border-slate-200 rounded-sm text-[8px] text-slate-400 space-y-1">
+                    <p>Role: <strong class="text-slate-800">TENANT</strong></p>
+                    <p>Session: <strong class="text-slate-800">SECURE</strong></p>
+                    <p>IP Address: <strong class="text-slate-800">LOCAL (127.0.0.1)</strong></p>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -114,6 +137,37 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const generalToggle = document.getElementById('sidebar-toggle-general');
+        const systemToggle = document.getElementById('sidebar-toggle-system');
+        const generalGroup = document.getElementById('nav-group-general');
+        const systemGroup = document.getElementById('nav-group-system');
+        
+        if (generalToggle && systemToggle && generalGroup && systemGroup) {
+            function setTab(tab) {
+                if (tab === 'general') {
+                    generalToggle.className = 'flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer transition-all';
+                    systemToggle.className = 'flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer transition-all';
+                    generalGroup.classList.remove('hidden');
+                    systemGroup.classList.add('hidden');
+                } else {
+                    systemToggle.className = 'flex-1 py-1.5 bg-slate-900 text-white rounded-sm shadow-sm cursor-pointer transition-all';
+                    generalToggle.className = 'flex-1 py-1.5 text-slate-500 hover:text-slate-900 cursor-pointer transition-all';
+                    systemGroup.classList.remove('hidden');
+                    generalGroup.classList.add('hidden');
+                }
+            }
+            
+            generalToggle.addEventListener('click', () => setTab('general'));
+            systemToggle.addEventListener('click', () => setTab('system'));
+            
+            // Default to general group
+            setTab('general');
+        }
+    });
+    </script>
 </aside>
 
 <!-- Main Dashboard Frame -->
