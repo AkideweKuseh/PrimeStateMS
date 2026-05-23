@@ -11,95 +11,102 @@ if (!isset($payments)) {
 require_once __DIR__ . '/../../layouts/admin-sidebar.php'; 
 ?>
 
-<!-- Page Header -->
-<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+<!-- Minimalist Header Block -->
+<div class="border-b border-slate-200 dark:border-white/10 pb-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
     <div>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Payments</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Track and manage all client payments.</p>
+        <h1 class="font-display font-black text-3xl text-slate-900 dark:text-white tracking-tighter uppercase">FINANCIAL LEDGER</h1>
+        <p class="text-slate-400 dark:text-slate-500 font-display text-[10px] font-bold tracking-widest uppercase mt-1">Track system cashflow, client collections, and verified payments.</p>
     </div>
     <div class="flex gap-2">
-        <button onclick="window.print()" class="px-4 py-2 bg-white dark:bg-[#1a1625] border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 transition flex items-center gap-2">
-            <span class="material-symbols-outlined text-base">print</span>
+        <button onclick="window.print()" 
+                class="px-5 py-2.5 bg-charcoal dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-slate-100 border border-slate-950 dark:border-white font-display text-[10px] font-bold tracking-widest uppercase rounded-none transition duration-300 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">print</span>
             Print Report
         </button>
     </div>
 </div>
 
-<!-- Payments Table -->
-<div class="bg-white dark:bg-[#1a1625] rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col">
-    <div class="overflow-x-auto custom-scrollbar flex-1 rounded-xl">
-        <table class="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
-            <thead class="bg-slate-50 dark:bg-slate-800/50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaction Info</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Client</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Property</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Amount</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Method</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white dark:bg-[#1a1625] divide-y divide-slate-100 dark:divide-slate-800">
-                <?php 
-                if($payments->rowCount() > 0):
-                    while($payment = $payments->fetch(PDO::FETCH_ASSOC)): 
-                ?>
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="block text-sm font-mono font-medium text-slate-900 dark:text-slate-200">
-                            <?php echo $payment['transaction_reference']; ?>
-                        </span>
-                        <span class="text-xs text-slate-400">ID: #<?php echo $payment['id']; ?></span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium text-slate-900 dark:text-white"><?php echo $payment['client_name']; ?></span>
-                            <span class="text-xs text-slate-500"><?php echo $payment['client_email']; ?></span>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="block text-sm text-slate-600 dark:text-slate-300 truncate max-w-[150px]" title="<?php echo $payment['property_title']; ?>">
-                            <?php echo $payment['property_title']; ?>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900 dark:text-white">
-                        <?php echo Helper::formatCurrency($payment['amount']); ?>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300 uppercase tracking-wider text-xs">
-                        <?php echo $payment['payment_method']; ?>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <?php 
-                            $statusClass = match($payment['payment_status']) {
-                                'completed', 'verified' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-                                'failed' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-                                default => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                            };
-                        ?>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusClass; ?>">
-                            <?php echo ucfirst($payment['payment_status']); ?>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-slate-500 dark:text-slate-400">
-                        <?php echo Helper::formatDate($payment['payment_date']); ?>
-                    </td>
-                </tr>
-                <?php 
-                    endwhile; 
-                else:
-                ?>
-                <tr>
-                    <td colspan="7" class="px-6 py-12 text-center">
-                        <div class="flex flex-col items-center justify-center text-slate-500">
-                            <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">payments</span>
-                            <p class="mb-4">No payment records found.</p>
-                        </div>
-                    </td>
-                </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+<div class="relative z-10">
+    <!-- Thin vertical architectural guide lines -->
+    <div class="absolute inset-x-0 inset-y-0 z-0 flex justify-between pointer-events-none opacity-10">
+        <div class="w-px h-full bg-slate-400 dark:bg-white/10"></div>
+        <div class="w-px h-full bg-slate-400 dark:bg-white/10"></div>
+        <div class="w-px h-full bg-slate-400 dark:bg-white/10"></div>
+    </div>
+
+    <!-- Stark brutalist payments table -->
+    <div class="bg-white dark:bg-[#151517] rounded-none border border-slate-200 dark:border-white/10 relative z-10">
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="min-w-full divide-y divide-slate-250 dark:divide-white/10">
+                <thead class="bg-slate-50 dark:bg-slate-800/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Transaction Info</th>
+                        <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Client</th>
+                        <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Property</th>
+                        <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Amount</th>
+                        <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Method</th>
+                        <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-4 text-right font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-white/5 bg-white dark:bg-[#151517]">
+                    <?php 
+                    if($payments->rowCount() > 0):
+                        while($payment = $payments->fetch(PDO::FETCH_ASSOC)): 
+                    ?>
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-[#1d1d20]/50 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="block text-xs font-mono font-bold text-slate-900 dark:text-white uppercase">
+                                <?php echo $payment['transaction_reference']; ?>
+                            </span>
+                            <span class="text-[9px] text-slate-400 font-mono">ID: #<?php echo $payment['id']; ?></span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-slate-900 dark:text-white uppercase"><?php echo $payment['client_name']; ?></span>
+                                <span class="text-[9px] font-mono text-slate-450 dark:text-slate-550 lowercase tracking-normal mt-0.5"><?php echo $payment['client_email']; ?></span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="block text-xs text-slate-650 dark:text-slate-350 truncate max-w-[150px] uppercase font-bold" title="<?php echo $payment['property_title']; ?>">
+                                <?php echo $payment['property_title']; ?>
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs font-bold text-slate-900 dark:text-white font-mono">
+                            <?php echo Helper::formatCurrency($payment['amount']); ?>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-slate-650 dark:text-slate-350 uppercase tracking-wider font-mono">
+                            <?php echo $payment['payment_method']; ?>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-none border text-[9px] font-bold uppercase tracking-wider <?php 
+                                echo match($payment['payment_status']) {
+                                    'completed', 'verified' => 'bg-green-500/10 text-green-700 border-green-200 dark:text-green-400 dark:border-green-800/30',
+                                    'failed' => 'bg-red-500/10 text-red-700 border-red-200 dark:text-red-400 dark:border-red-800/30',
+                                    default => 'bg-yellow-500/10 text-yellow-750 border-yellow-250 dark:text-primary dark:border-primary/20'
+                                };
+                            ?>">
+                                <?php echo $payment['payment_status']; ?>
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-xs text-slate-500 dark:text-slate-400 font-mono">
+                            <?php echo Helper::formatDate($payment['payment_date']); ?>
+                        </td>
+                    </tr>
+                    <?php 
+                        endwhile; 
+                    else:
+                    ?>
+                    <tr>
+                        <td colspan="7" class="px-6 py-16 text-center">
+                            <span class="material-symbols-outlined text-4xl text-slate-305 dark:text-slate-650 mb-3">payments</span>
+                            <p class="font-display text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500">No payment transactions recorded.</p>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

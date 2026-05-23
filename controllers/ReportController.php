@@ -99,6 +99,16 @@ class ReportController {
             }
             fputcsv($output, []);
 
+            // Financials Section
+            fputcsv($output, ['--- FINANCIAL REVENUE REPORT ---']);
+            fputcsv($output, ['Transaction ID', 'Date', 'Client', 'Method', 'Amount']);
+            $paymentModel = new Payment();
+            $payments = $paymentModel->readAll();
+            while($row = $payments->fetch(PDO::FETCH_ASSOC)) {
+                fputcsv($output, [$row['transaction_reference'] ?? 'N/A', $row['payment_date'], $row['client_name'], $row['payment_method'], $row['amount']]);
+            }
+            fputcsv($output, []);
+
             // Rent Section
             fputcsv($output, ['--- RENT COLLECTION REPORT ---']);
             fputcsv($output, ['Tenant', 'Property', 'Amount', 'Balance', 'Status']);
