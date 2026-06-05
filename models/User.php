@@ -130,6 +130,14 @@ class User {
                       email = :email, 
                       phone = :phone";
         
+        if (isset($data['role'])) {
+            $query .= ", role = :role";
+        }
+
+        if (isset($data['status'])) {
+            $query .= ", status = :status";
+        }
+
         // Only update password if provided
         if (!empty($data['password'])) {
             $query .= ", password = :password";
@@ -148,6 +156,16 @@ class User {
         $stmt->bindParam(":email", $email);
         $stmt->bindParam(":phone", $phone);
         $stmt->bindParam(":id", $id);
+
+        if (isset($data['role'])) {
+            $role = htmlspecialchars(strip_tags($data['role']));
+            $stmt->bindParam(":role", $role);
+        }
+
+        if (isset($data['status'])) {
+            $status = htmlspecialchars(strip_tags($data['status']));
+            $stmt->bindParam(":status", $status);
+        }
 
         if (!empty($data['password'])) {
             $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
