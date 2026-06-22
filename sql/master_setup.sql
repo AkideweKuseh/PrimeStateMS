@@ -239,3 +239,20 @@ ALTER TABLE payments MODIFY COLUMN payment_method VARCHAR(50) NOT NULL COMMENT '
 
 -- Fix 2: Widen payment_status ENUM to include 'completed' value
 ALTER TABLE payments MODIFY COLUMN payment_status ENUM('pending', 'verified', 'rejected', 'completed') DEFAULT 'pending' COMMENT 'Payment verification status';
+
+-- ============================================================
+-- 6. ADDITIONAL SAMPLE DATA (V2 Roles)
+-- ============================================================
+
+-- Manager: manager@primeestate.com / Manager@123
+INSERT INTO users (full_name, email, phone, password, role, status) VALUES
+('Property Manager', 'manager@primeestate.com', '+233242222222', 
+ '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 
+ 'manager', 'active') ON DUPLICATE KEY UPDATE id=id;
+
+-- Tenant: tenant@primeestate.com / Tenant@123
+INSERT INTO users (full_name, email, phone, password, role, status) VALUES
+('Jane Tenant', 'tenant@primeestate.com', '+233243333333', 
+ '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 
+ 'tenant', 'active') ON DUPLICATE KEY UPDATE id=id;
+
