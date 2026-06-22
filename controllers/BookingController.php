@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/Booking.php';
 require_once __DIR__ . '/../core/Helper.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../models/Payment.php';
+require_once __DIR__ . '/../models/Property.php';
 
 /**
  * BookingController
@@ -58,17 +59,19 @@ class BookingController {
                     "controllers/BookingController.php?action=index"
                 );
 
-                // Notify Client
+                // Notify Client/Tenant
+                $bookingsPage = ($_SESSION['user_role'] ?? '') === 'tenant' ? 'views/tenant/bookings.php' : 'views/client/bookings.php';
                 $notification->create(
                     Auth::id(),
                     "Booking Submitted",
                     "Your booking request for Property #{$booking->property_id} is pending confirmation.",
                     "info",
-                    "views/client/bookings.php"
+                    $bookingsPage
                 );
 
                 Helper::setFlash('success', 'Booking request submitted successfully.');
-                Helper::redirect('views/client/dashboard.php');
+                $dashboardPage = ($_SESSION['user_role'] ?? '') === 'tenant' ? 'views/tenant/dashboard.php' : 'views/client/dashboard.php';
+                Helper::redirect($dashboardPage);
             } else {
                 Helper::setFlash('error', 'Booking failed.');
                 Helper::redirect('views/public/property-details.php?id=' . $_POST['property_id']);
@@ -82,6 +85,13 @@ class BookingController {
             $booking = $bookingModel->readOne($_GET['id']);
             
             if ($booking) {
+                // Check if payment has been completed before confirming
+                if ($booking['payment_status'] !== 'completed') {
+                    Helper::setFlash('error', 'Cannot confirm booking — payment has not been completed by the client.');
+                    Helper::redirect('controllers/BookingController.php?action=index');
+                    return;
+                }
+
                 if ($bookingModel->confirm($_GET['id'])) {
                     
                     // If it's a rental property, convert client to tenant
@@ -100,7 +110,34 @@ class BookingController {
                             'lease_start' => $booking['start_date'],
                             'lease_end' => $booking['end_date'] ?? date('Y-m-d', strtotime('+1 year', strtotime($booking['start_date'])))
                         ];
-                        $tenantModel->create($tenantData);
+                        $tenantId = $tenantModel->create($tenantData);
+                        
+                        if ($tenantId) {
+                            // Automatically create initial rent record for the tenant
+                            require_once __DIR__ . '/../models/Rent.php';
+                            $rentModel = new Rent();
+                            $rentData = [
+                                'tenant_id' => $tenantId,
+                                'property_id' => $booking['property_id'],
+                                'amount' => $booking['total_amount'],
+                                'balance' => 0.00,
+                                'status' => 'paid'
+                            ];
+                            $rentId = $rentModel->create($rentData);
+                            if ($rentId) {
+                                // Record the payment date as of today
+                                $rentModel->updatePayment($rentId, [
+                                    'payment_date' => date('Y-m-d'),
+                                    'balance' => 0.00,
+                                    'status' => 'paid'
+                                ]);
+                            } else {
+                                error_log("BookingController::confirm - Failed to create rent record for tenant_id=$tenantId, booking_id=" . $_GET['id']);
+                            }
+                        } else {
+                            error_log("BookingController::confirm - Failed to create tenant record for user_id={$booking['client_id']}, booking_id=" . $_GET['id']);
+                            Helper::setFlash('warning', 'Booking confirmed but tenant record creation failed. Please create the tenant manually.');
+                        }
                         
                         // 2. Update Property status to occupied
                         $propertyModel->title = $propData['title'];
@@ -130,6 +167,29 @@ class BookingController {
                             'phone' => $userData['phone'],
                             'role' => 'tenant'
                         ]);
+                        
+                        // Sync session if the currently-logged-in user is the one being upgraded
+                        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $booking['client_id']) {
+                            $_SESSION['user_role'] = 'tenant';
+                        }
+                    } else {
+                        // For sale listings, update property status to sold
+                        $propertyModel->title = $propData['title'];
+                        $propertyModel->description = $propData['description'];
+                        $propertyModel->property_type = $propData['property_type'];
+                        $propertyModel->listing_type = $propData['listing_type'];
+                        $propertyModel->price = $propData['price'];
+                        $propertyModel->address = $propData['address'];
+                        $propertyModel->city = $propData['city'];
+                        $propertyModel->state = $propData['state'];
+                        $propertyModel->zip_code = $propData['zip_code'];
+                        $propertyModel->bedrooms = $propData['bedrooms'];
+                        $propertyModel->bathrooms = $propData['bathrooms'];
+                        $propertyModel->area_sqft = $propData['area_sqft'];
+                        $propertyModel->is_featured = $propData['is_featured'];
+                        $propertyModel->main_image = $propData['main_image'];
+                        $propertyModel->status = 'sold';
+                        $propertyModel->update();
                     }
                     
                     Helper::setFlash('success', 'Booking confirmed and tenant created.');
@@ -170,7 +230,8 @@ class BookingController {
                 Helper::setFlash('error', 'Failed to delete booking. It may be confirmed or not found.');
             }
         }
-        Helper::redirect('views/client/bookings.php'); // Redirect back to client bookings
+        $redirect = ($_SESSION['user_role'] ?? '') === 'tenant' ? 'views/tenant/bookings.php' : 'views/client/bookings.php';
+        Helper::redirect($redirect);
     }
 
     public function payment() {
@@ -202,53 +263,45 @@ class BookingController {
                 $paymentData = [
                     'booking_id' => $bookingId,
                     'amount' => $booking['total_amount'],
-                    'payment_method' => $_POST['payment_method'] ?? 'Mock Gateway',
+                    'payment_method' => $_POST['payment_method'] ?? 'mobile_money',
                     'transaction_id' => 'TXN-' . strtoupper(uniqid()),
-                    'status' => 'completed',
+                    'status' => 'verified',
                     'user_id' => $userId, // Used for recorded_by
                     'notes' => 'Payment via Mock Gateway'
                 ];
 
                 if ($paymentModel->create($paymentData)) {
-                    // Update booking status to confirmed
-                    if ($bookingModel->confirm($bookingId)) {
+                    // Update booking payment_status to completed (but keep booking_status as pending for admin to confirm)
+                    $bookingModel->updatePaymentStatus($bookingId, 'completed');
                         
-                        // Notifications
-                        require_once __DIR__ . '/../models/Notification.php';
-                        $notification = new Notification();
-                        $amountFormatted = Helper::formatCurrency($booking['total_amount']);
+                    // Notifications
+                    require_once __DIR__ . '/../models/Notification.php';
+                    $notification = new Notification();
+                    $amountFormatted = Helper::formatCurrency($booking['total_amount']);
 
-                        // Notify Client
-                        $notification->create(
-                            $userId,
-                            "Payment Successful",
-                            "Your payment of {$amountFormatted} for Booking #{$bookingId} was successful and your booking is confirmed.",
-                            "success",
-                            "views/client/bookings.php"
-                        );
+                    // Notify Client
+                    $notification->create(
+                        $userId,
+                        "Payment Successful",
+                        "Your payment of {$amountFormatted} for Booking #{$bookingId} was successful. Awaiting admin confirmation.",
+                        "success",
+                        "views/client/bookings.php"
+                    );
 
-                        // Notify Admins
-                        $notification->notifyAdmins(
-                            "Payment Received",
-                            "Client {$booking['client_name']} paid {$amountFormatted} for Booking #{$bookingId}.",
-                            "success",
-                            "controllers/PaymentController.php?action=index"
-                        );
+                    // Notify Admins
+                    $notification->notifyAdmins(
+                        "Payment Received — Awaiting Confirmation",
+                        "Client {$booking['client_name']} paid {$amountFormatted} for Booking #{$bookingId}. Please review and confirm.",
+                        "success",
+                        "controllers/BookingController.php?action=index"
+                    );
 
-                        if ($isJsonRequest) {
-                            header('Content-Type: application/json');
-                            echo json_encode(['success' => true, 'message' => 'Payment successful']);
-                            exit;
-                        }
-                        Helper::setFlash('success', 'Payment successful! Booking confirmed.');
-                    } else {
-                        if ($isJsonRequest) {
-                            header('Content-Type: application/json');
-                            echo json_encode(['success' => false, 'message' => 'Booking confirmation failed']);
-                            exit;
-                        }
-                        Helper::setFlash('warning', 'Payment recorded but booking status update failed.');
+                    if ($isJsonRequest) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['success' => true, 'message' => 'Payment successful! Awaiting admin confirmation.']);
+                        exit;
                     }
+                    Helper::setFlash('success', 'Payment successful! Your booking is awaiting admin confirmation.');
                 } else {
                     if ($isJsonRequest) {
                         header('Content-Type: application/json');
@@ -272,7 +325,8 @@ class BookingController {
              echo json_encode(['success' => false, 'message' => 'Invalid request']);
              exit;
         }
-        Helper::redirect('views/client/bookings.php');
+        $redirect = ($_SESSION['user_role'] ?? '') === 'tenant' ? 'views/tenant/bookings.php' : 'views/client/bookings.php';
+        Helper::redirect($redirect);
     }
 }
 

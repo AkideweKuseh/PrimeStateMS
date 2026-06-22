@@ -85,6 +85,7 @@ require_once __DIR__ . '/../../layouts/admin-sidebar.php';
                         <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Client</th>
                         <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Dates</th>
                         <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Total</th>
+                        <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Payment</th>
                         <th class="px-6 py-4 text-left font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Status</th>
                         <th class="px-6 py-4 text-right font-display text-[9px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-widest">Actions</th>
                     </tr>
@@ -120,6 +121,24 @@ require_once __DIR__ . '/../../layouts/admin-sidebar.php';
                             <?php echo Helper::formatCurrency($booking['total_amount']); ?>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
+                            <?php
+                                $paymentClass = match($booking['payment_status']) {
+                                    'completed' => 'bg-green-500/10 text-green-700 border-green-200 dark:text-green-400 dark:border-green-800/30',
+                                    'partial' => 'bg-blue-500/10 text-blue-700 border-blue-200 dark:text-blue-400 dark:border-blue-800/30',
+                                    default => 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-white/10'
+                                };
+                                $paymentIcon = match($booking['payment_status']) {
+                                    'completed' => 'paid',
+                                    'partial' => 'pending',
+                                    default => 'money_off'
+                                };
+                            ?>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-none border text-[9px] font-bold uppercase tracking-wider <?php echo $paymentClass; ?>">
+                                <span class="material-symbols-outlined text-[10px]"><?php echo $paymentIcon; ?></span>
+                                <?php echo $booking['payment_status']; ?>
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-none border text-[9px] font-bold uppercase tracking-wider <?php 
                                 echo match($booking['booking_status']) {
                                     'confirmed' => 'bg-green-500/10 text-green-700 border-green-200 dark:text-green-400 dark:border-green-800/30',
@@ -139,16 +158,24 @@ require_once __DIR__ . '/../../layouts/admin-sidebar.php';
                                 </a>
                                 
                                 <?php if($booking['booking_status'] === 'pending'): ?>
-                                <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=confirm&id=<?php echo $booking['id']; ?>" 
-                                   class="p-2 border border-slate-200 dark:border-white/10 text-green-600 hover:text-green-850 hover:border-green-600 rounded-none transition duration-300" 
-                                   title="Confirm Booking" 
-                                   onclick="return confirm('Confirm this booking?')">
-                                    <span class="material-symbols-outlined text-sm leading-none">check_circle</span>
-                                </a>
-                                <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=cancel&id=<?php echo $booking['id']; ?>" 
+                                    <?php if($booking['payment_status'] === 'completed'): ?>
+                                    <a href="javascript:void(0)" 
+                                       class="p-2 border border-slate-200 dark:border-white/10 text-green-600 hover:text-green-850 hover:border-green-600 rounded-none transition duration-300" 
+                                       title="Confirm Booking" 
+                                       onclick="showConfirmModal({title:'Confirm Booking',message:'Payment has been received. Are you sure you want to confirm this booking? The client will be notified.',type:'success',confirmText:'Yes, Confirm',onConfirm:()=>{window.location.href='<?php echo BASE_URL; ?>controllers/BookingController.php?action=confirm&id=<?php echo $booking['id']; ?>'}})">
+                                        <span class="material-symbols-outlined text-sm leading-none">check_circle</span>
+                                    </a>
+                                    <?php else: ?>
+                                    <button disabled 
+                                            class="p-2 border border-slate-200 dark:border-white/5 text-slate-300 dark:text-slate-700 cursor-not-allowed rounded-none" 
+                                            title="Awaiting client payment">
+                                        <span class="material-symbols-outlined text-sm leading-none">check_circle</span>
+                                    </button>
+                                    <?php endif; ?>
+                                <a href="javascript:void(0)" 
                                    class="p-2 border border-slate-200 dark:border-white/10 text-red-600 hover:text-red-850 hover:border-red-650 rounded-none transition duration-300" 
                                    title="Cancel Booking" 
-                                   onclick="return confirm('Cancel this booking?')">
+                                   onclick="showConfirmModal({title:'Cancel Booking',message:'Are you sure you want to cancel this booking? This action cannot be undone.',type:'danger',confirmText:'Yes, Cancel',onConfirm:()=>{window.location.href='<?php echo BASE_URL; ?>controllers/BookingController.php?action=cancel&id=<?php echo $booking['id']; ?>'}})">
                                     <span class="material-symbols-outlined text-sm leading-none">cancel</span>
                                 </a>
                                 <?php endif; ?>
@@ -160,7 +187,7 @@ require_once __DIR__ . '/../../layouts/admin-sidebar.php';
                     else:
                     ?>
                     <tr>
-                        <td colspan="7" class="px-6 py-16 text-center">
+                        <td colspan="8" class="px-6 py-16 text-center">
                             <span class="material-symbols-outlined text-4xl text-slate-305 dark:text-slate-650 mb-3">event_busy</span>
                             <p class="font-display text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500">No bookings found matching filters.</p>
                         </td>

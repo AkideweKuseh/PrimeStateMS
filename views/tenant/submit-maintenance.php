@@ -1,8 +1,11 @@
 <?php
-require_once __DIR__ . '/../layouts/tenant-sidebar.php';
-require_once __DIR__ . '/../../models/Tenant.php';
+// Load dependencies BEFORE the sidebar to allow redirect without "headers already sent" error
+require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/Helper.php';
 require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../../models/Tenant.php';
+
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 $userId = Auth::id();
 $tenantModel = new Tenant();
@@ -12,6 +15,9 @@ if (!$tenant) {
     Helper::redirect('views/tenant/dashboard.php');
     exit;
 }
+
+// Now safe to include layout (tenant record confirmed)
+require_once __DIR__ . '/../layouts/tenant-sidebar.php';
 ?>
 
 <!-- Minimalist Header Block -->

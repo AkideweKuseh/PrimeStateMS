@@ -144,6 +144,20 @@ class Booking {
         return false;
     }
 
+    // Update payment status on booking
+    public function updatePaymentStatus($id, $status) {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET payment_status = :status, 
+                      updated_at = NOW() 
+                  WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":status", $status);
+        $stmt->bindParam(":id", $id);
+
+        return $stmt->execute();
+    }
+
     // Check if user already has an active booking for this property
     public function isBookedByUser($property_id, $client_id) {
         $query = "SELECT id FROM " . $this->table_name . " 

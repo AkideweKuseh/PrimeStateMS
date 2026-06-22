@@ -33,9 +33,18 @@ require_once __DIR__ . '/../../../core/Helper.php';
                         'cancelled' => 'bg-red-500/10 text-red-700 border-red-200 dark:text-red-400 dark:border-red-800/30',
                         default => 'bg-yellow-500/10 text-yellow-750 border-yellow-250 dark:text-primary dark:border-primary/20'
                     };
+                    $paymentBadgeClass = match($booking['payment_status']) {
+                        'completed' => 'bg-green-500/10 text-green-700 border-green-200 dark:text-green-400 dark:border-green-800/30',
+                        'partial' => 'bg-blue-500/10 text-blue-700 border-blue-200 dark:text-blue-400 dark:border-blue-800/30',
+                        default => 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800/50 dark:text-slate-400 dark:border-white/10'
+                    };
                 ?>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-none border text-[9px] font-bold uppercase tracking-wider <?php echo $statusClass; ?>">
                     <?php echo $booking['booking_status']; ?>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-none border text-[9px] font-bold uppercase tracking-wider <?php echo $paymentBadgeClass; ?>">
+                    <span class="material-symbols-outlined text-[10px]"><?php echo $booking['payment_status'] === 'completed' ? 'paid' : 'money_off'; ?></span>
+                    <?php echo $booking['payment_status']; ?>
                 </span>
             </div>
             <p class="text-slate-400 dark:text-slate-500 font-display text-[9px] font-bold tracking-widest uppercase">Registered on <?php echo Helper::formatDate($booking['created_at']); ?></p>
@@ -43,12 +52,23 @@ require_once __DIR__ . '/../../../core/Helper.php';
         
         <div class="flex gap-3">
             <?php if($booking['booking_status'] === 'pending'): ?>
-            <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=confirm&id=<?php echo $booking['id']; ?>" 
-               class="px-5 py-2.5 bg-primary hover:bg-[#d9c441] border border-slate-900 dark:border-primary text-black font-display text-[10px] font-bold tracking-widest uppercase rounded-none transition duration-300 flex items-center gap-2 shadow-[4px_4px_0px_0px_#111111] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
-                <span class="material-symbols-outlined text-sm font-bold">check_circle</span>
-                Confirm
-            </a>
-            <a href="<?php echo BASE_URL; ?>controllers/BookingController.php?action=cancel&id=<?php echo $booking['id']; ?>" 
+                <?php if($booking['payment_status'] === 'completed'): ?>
+                <a href="javascript:void(0)" 
+                   onclick="showConfirmModal({title:'Confirm Booking',message:'Payment has been received. Are you sure you want to confirm this booking?',type:'success',confirmText:'Yes, Confirm',onConfirm:()=>{window.location.href='<?php echo BASE_URL; ?>controllers/BookingController.php?action=confirm&id=<?php echo $booking['id']; ?>'}})"
+                   class="px-5 py-2.5 bg-primary hover:bg-[#d9c441] border border-slate-900 dark:border-primary text-black font-display text-[10px] font-bold tracking-widest uppercase rounded-none transition duration-300 flex items-center gap-2 shadow-[4px_4px_0px_0px_#111111] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
+                    <span class="material-symbols-outlined text-sm font-bold">check_circle</span>
+                    Confirm
+                </a>
+                <?php else: ?>
+                <button disabled 
+                        class="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-600 font-display text-[10px] font-bold tracking-widest uppercase rounded-none cursor-not-allowed flex items-center gap-2"
+                        title="Client must pay before you can confirm">
+                    <span class="material-symbols-outlined text-sm">check_circle</span>
+                    Awaiting Payment
+                </button>
+                <?php endif; ?>
+            <a href="javascript:void(0)" 
+               onclick="showConfirmModal({title:'Cancel Booking',message:'Are you sure you want to cancel this booking? This action cannot be undone.',type:'danger',confirmText:'Yes, Cancel',onConfirm:()=>{window.location.href='<?php echo BASE_URL; ?>controllers/BookingController.php?action=cancel&id=<?php echo $booking['id']; ?>'}})"
                class="px-5 py-2.5 bg-charcoal dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-slate-100 border border-slate-950 dark:border-white font-display text-[10px] font-bold tracking-widest uppercase rounded-none transition duration-300 flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">cancel</span>
                 Cancel
@@ -151,6 +171,39 @@ require_once __DIR__ . '/../../../core/Helper.php';
                         <div class="flex justify-between items-center">
                             <span class="font-display text-[10px] font-bold tracking-widest uppercase text-slate-950 dark:text-white">TOTAL DUE</span>
                             <span class="text-lg font-mono font-bold text-primary"><?php echo Helper::formatCurrency($booking['total_amount']); ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status Card -->
+            <div class="bg-white dark:bg-[#151517] rounded-none border border-slate-200 dark:border-white/10 overflow-hidden">
+                <div class="p-5 border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-800/30">
+                    <h2 class="font-display font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider">Payment Status</h2>
+                </div>
+                <div class="p-6">
+                    <?php
+                        $pStatusClass = match($booking['payment_status']) {
+                            'completed' => 'border-green-500/20 bg-green-500/5',
+                            'partial' => 'border-blue-500/20 bg-blue-500/5',
+                            default => 'border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-800/30'
+                        };
+                        $pStatusIcon = match($booking['payment_status']) {
+                            'completed' => 'paid',
+                            default => 'money_off'
+                        };
+                        $pStatusColor = match($booking['payment_status']) {
+                            'completed' => 'text-green-600 dark:text-green-400',
+                            default => 'text-slate-400 dark:text-slate-500'
+                        };
+                    ?>
+                    <div class="border rounded-none p-4 flex items-center gap-4 <?php echo $pStatusClass; ?>">
+                        <span class="material-symbols-outlined text-2xl <?php echo $pStatusColor; ?>"><?php echo $pStatusIcon; ?></span>
+                        <div>
+                            <p class="text-xs font-bold text-slate-900 dark:text-white uppercase"><?php echo $booking['payment_status']; ?></p>
+                            <p class="text-[9px] font-bold tracking-wider text-slate-400 uppercase mt-0.5">
+                                <?php echo $booking['payment_status'] === 'completed' ? 'Client has paid in full' : 'Awaiting client payment'; ?>
+                            </p>
                         </div>
                     </div>
                 </div>

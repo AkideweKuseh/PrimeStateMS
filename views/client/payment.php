@@ -257,18 +257,18 @@ if (!$booking || $booking['client_id'] != Auth::id() || $booking['booking_status
                     document.getElementById('successContent').classList.remove('hidden');
                 } else {
                     // Show error
-                    alert('Payment Failed: ' + (data.message || 'Unknown error'));
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
-                    document.getElementById('modalContent').classList.remove('hidden'); 
+                    document.getElementById('modalContent').classList.remove('hidden');
+                    showAlertModal({title:'Payment Failed',message:data.message || 'An unknown error occurred. Please try again.',type:'danger'}); 
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while processing your payment. Please try again.');
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
-                document.getElementById('modalContent').classList.remove('hidden'); 
+                document.getElementById('modalContent').classList.remove('hidden');
+                showAlertModal({title:'Payment Error',message:'An error occurred while processing your payment. Please try again.',type:'danger'}); 
             });
             
         }, 3000); 

@@ -58,9 +58,9 @@ $tenants = $tenantModel->readAll();
                             <?php echo date('d M Y', strtotime($t['lease_end'])); ?>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-xs font-medium">
-                            <a href="<?php echo BASE_URL; ?>controllers/TenantController.php?action=delete&id=<?php echo $t['id']; ?>" 
+                            <a href="javascript:void(0)" 
                                class="px-3 py-1.5 border border-red-500/20 text-red-600 hover:text-red-800 hover:border-red-650 rounded-none transition duration-300 font-display text-[9px] font-bold tracking-widest uppercase"
-                               onclick="return confirm('Remove tenant lease record? The property will remain occupied.')">
+                               onclick="showConfirmModal({title:'Terminate Lease',message:'Remove tenant lease record? The property will remain occupied.',type:'danger',confirmText:'Yes, Terminate',onConfirm:()=>{window.location.href='<?php echo BASE_URL; ?>controllers/TenantController.php?action=delete&id=<?php echo $t['id']; ?>'}})">
                                 Terminate
                             </a>
                         </td>

@@ -55,7 +55,18 @@ class Auth {
     public static function requireRole(...$roles) {
         self::requireLogin();
         if (!isset($_SESSION['user_role']) || !in_array($_SESSION['user_role'], $roles)) {
-            Helper::redirect('index.php'); // Or a 403 page if exists
+            // Session role doesn't match — check if the DB role has been updated
+            // (e.g., client→tenant after booking confirmation)
+            require_once __DIR__ . '/../models/User.php';
+            $userModel = new User();
+            $dbRole = $userModel->getRoleById($_SESSION['user_id']);
+            if ($dbRole && $dbRole !== $_SESSION['user_role']) {
+                $_SESSION['user_role'] = $dbRole; // Sync session with DB
+            }
+            // Re-check after sync
+            if (!in_array($_SESSION['user_role'], $roles)) {
+                Helper::redirect('index.php'); // Or a 403 page if exists
+            }
         }
     }
 

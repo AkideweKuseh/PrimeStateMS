@@ -196,6 +196,16 @@ class User {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row['count'];
     }
+
+    // Get user role by ID (lightweight query for session sync)
+    public function getRoleById($id) {
+        $query = "SELECT role FROM " . $this->table_name . " WHERE id = :id LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['role'] : null;
+    }
     // Get all admins
     public function readAllAdmins() {
         $query = "SELECT * FROM " . $this->table_name . " WHERE role = 'admin' ORDER BY created_at DESC";

@@ -83,11 +83,15 @@ if (isset($no_header_padding) && $no_header_padding) {
             <!-- Auth & Pill CTA Button (Column 3) -->
             <div class="hidden md:flex items-center justify-end space-x-6">
                 <?php if (Auth::check()): ?>
-                    <?php if (Auth::isAdmin()): ?>
-                        <a href="<?php echo BASE_URL; ?>views/admin/dashboard.php" class="font-display text-[11px] font-bold tracking-widest uppercase text-white hover:text-primary transition-colors">Dashboard</a>
-                    <?php else: ?>
-                        <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="font-display text-[11px] font-bold tracking-widest uppercase text-white hover:text-primary transition-colors">Dashboard</a>
-                    <?php endif; ?>
+                    <?php 
+                        $dashboardUrl = match($_SESSION['user_role'] ?? 'client') {
+                            'admin' => BASE_URL . 'views/admin/dashboard.php',
+                            'manager' => BASE_URL . 'views/manager/dashboard.php',
+                            'tenant' => BASE_URL . 'views/tenant/dashboard.php',
+                            default => BASE_URL . 'views/client/dashboard.php'
+                        };
+                    ?>
+                    <a href="<?php echo $dashboardUrl; ?>" class="font-display text-[11px] font-bold tracking-widest uppercase text-white hover:text-primary transition-colors">Dashboard</a>
                     <a href="<?php echo BASE_URL; ?>controllers/AuthController.php?action=logout" class="font-display text-[11px] font-bold tracking-widest uppercase text-red-400 hover:text-red-300 transition-colors">Logout</a>
                 <?php else: ?>
                     <a href="<?php echo BASE_URL; ?>views/auth/login.php" class="font-display text-[11px] font-bold tracking-widest uppercase text-white/80 hover:text-white transition-colors">Log In</a>

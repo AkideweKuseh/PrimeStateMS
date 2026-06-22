@@ -3,6 +3,7 @@ require_once __DIR__ . '/../layouts/tenant-sidebar.php';
 require_once __DIR__ . '/../../models/Tenant.php';
 require_once __DIR__ . '/../../models/Rent.php';
 require_once __DIR__ . '/../../models/Maintenance.php';
+require_once __DIR__ . '/../../models/Booking.php';
 require_once __DIR__ . '/../../core/Helper.php';
 require_once __DIR__ . '/../../core/Auth.php';
 
@@ -25,6 +26,12 @@ $rents = $rentModel->readByTenantId($tenant['id'])->fetchAll(PDO::FETCH_ASSOC);
 
 $maintenanceModel = new Maintenance();
 $requests = $maintenanceModel->readByTenantId($tenant['id'])->fetchAll(PDO::FETCH_ASSOC);
+
+$bookingModel = new Booking();
+$bookingsStmt = $bookingModel->readByClient($userId);
+$bookings = $bookingsStmt->fetchAll(PDO::FETCH_ASSOC);
+$activeBookings = 0;
+foreach ($bookings as $bk) if ($bk['booking_status'] !== 'cancelled') $activeBookings++;
 
 $totalBalance = 0;
 foreach ($rents as $r) {
@@ -49,7 +56,7 @@ foreach ($rents as $r) {
     </div>
 
     <!-- Stark brutalist stats grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 relative z-10">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 relative z-10">
         <!-- Balance Card -->
         <div class="bg-white dark:bg-[#151517] border border-slate-200 dark:border-white/10 p-6 rounded-none flex flex-col justify-between hover:border-slate-900 dark:hover:border-white transition-all duration-300">
             <div>
@@ -83,6 +90,18 @@ foreach ($rents as $r) {
             </div>
             <a href="maintenance.php" class="font-display text-[9px] font-bold tracking-widest uppercase text-primary hover:text-[#d9c441] mt-5 inline-flex items-center gap-1.5 transition-colors">
                 Request Service
+                <span class="material-symbols-outlined text-[10px]">arrow_forward</span>
+            </a>
+        </div>
+
+        <!-- Bookings Card -->
+        <div class="bg-white dark:bg-[#151517] border border-slate-200 dark:border-white/10 p-6 rounded-none flex flex-col justify-between hover:border-slate-900 dark:hover:border-white transition-all duration-300">
+            <div>
+                <p class="font-display text-[9px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500">My Bookings</p>
+                <h3 class="font-mono font-bold text-2xl text-slate-900 dark:text-white mt-2 leading-none"><?php echo $activeBookings; ?></h3>
+            </div>
+            <a href="bookings.php" class="font-display text-[9px] font-bold tracking-widest uppercase text-primary hover:text-[#d9c441] mt-5 inline-flex items-center gap-1.5 transition-colors">
+                View All Bookings
                 <span class="material-symbols-outlined text-[10px]">arrow_forward</span>
             </a>
         </div>
@@ -145,6 +164,51 @@ foreach ($rents as $r) {
                 </div>
                 <?php endif; ?>
             </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="mt-8 bg-white dark:bg-[#151517] border border-slate-200 dark:border-white/10 p-6 rounded-none relative z-10">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="font-display font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">Recent Bookings</h3>
+            <a href="bookings.php" class="font-display text-[9px] font-bold tracking-widest uppercase text-primary hover:text-[#d9c441] transition-colors">View All</a>
+        </div>
+        <div class="space-y-4">
+            <?php foreach (array_slice($bookings, 0, 3) as $bk): ?>
+            <div class="flex items-center justify-between p-4 border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-slate-900/30 rounded-none hover:border-slate-900 dark:hover:border-white transition-colors duration-300">
+                <div class="flex items-center gap-4">
+                    <div class="flex-shrink-0 h-10 w-10 border border-slate-200 dark:border-white/10 bg-slate-900 overflow-hidden">
+                        <img class="h-full w-full object-cover" 
+                             src="<?php echo BASE_URL; ?>uploads/properties/<?php echo $bk['main_image'] ?? 'default.jpg'; ?>" 
+                             alt="<?php echo $bk['title']; ?>"
+                             onerror="this.src='https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=120&q=80'">
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide"><?php echo htmlspecialchars($bk['title']); ?></p>
+                        <p class="text-[9px] font-mono text-slate-450 dark:text-slate-500 uppercase mt-1"><?php echo $bk['city']; ?> · <?php echo Helper::formatDate($bk['booking_date']); ?></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-slate-900 dark:text-white font-mono"><?php echo Helper::formatCurrency($bk['total_amount']); ?></span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-none border text-[9px] font-bold uppercase tracking-wider <?php 
+                        echo match($bk['booking_status']) {
+                            'confirmed' => 'bg-green-500/10 text-green-700 border-green-200 dark:text-green-400 dark:border-green-800/30',
+                            'cancelled' => 'bg-red-500/10 text-red-700 border-red-200 dark:text-red-400 dark:border-red-800/30',
+                            default => 'bg-yellow-500/10 text-yellow-750 border-yellow-250 dark:text-primary dark:border-primary/20'
+                        };
+                    ?>">
+                        <?php echo $bk['booking_status']; ?>
+                    </span>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($bookings)): ?>
+            <div class="p-8 border border-slate-200 dark:border-white/10 text-center rounded-none bg-slate-50 dark:bg-slate-900/30">
+                <span class="material-symbols-outlined text-3xl text-slate-300 mb-2">event_busy</span>
+                <p class="font-display text-[9px] font-bold tracking-widest uppercase text-slate-400">No bookings yet.</p>
+                <a href="<?php echo BASE_URL; ?>views/public/properties.php" class="mt-3 font-display text-[9px] font-bold tracking-widest uppercase text-primary hover:text-[#d9c441] transition-colors inline-block">Browse Properties</a>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

@@ -1,7 +1,14 @@
-<?php 
-require_once __DIR__ . '/../layouts/client-sidebar.php'; 
-require_once __DIR__ . '/../../models/Booking.php';
+<?php
+// Load dependencies BEFORE the sidebar to allow redirect without "headers already sent" error
+require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../core/Helper.php';
+require_once __DIR__ . '/../../core/Auth.php';
+require_once __DIR__ . '/../../models/Booking.php';
+
+if (session_status() === PHP_SESSION_NONE) session_start();
+
+// Now safe to include layout
+require_once __DIR__ . '/../layouts/tenant-sidebar.php';
 
 $bookingModel = new Booking();
 $myBookings = $bookingModel->readByClient(Auth::id());
@@ -11,8 +18,13 @@ $myBookings = $bookingModel->readByClient(Auth::id());
 <div class="border-b border-slate-200 dark:border-white/10 pb-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
     <div>
         <h1 class="font-display font-black text-3xl text-slate-900 dark:text-white tracking-tighter uppercase">MY BOOKINGS</h1>
-        <p class="text-slate-400 dark:text-slate-500 font-display text-[10px] font-bold tracking-widest uppercase mt-1">Manage and track your property schedules, viewings, and agreements.</p>
+        <p class="text-slate-400 dark:text-slate-500 font-display text-[10px] font-bold tracking-widest uppercase mt-1">Track your property bookings, payments, and confirmations.</p>
     </div>
+    <a href="<?php echo BASE_URL; ?>views/public/properties.php" 
+       class="px-5 py-2.5 bg-primary hover:bg-[#d9c441] border border-slate-900 dark:border-primary text-black font-display text-[10px] font-bold tracking-widest uppercase rounded-none transition duration-300 flex items-center gap-2 shadow-[4px_4px_0px_0px_#111111] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]">
+        <span class="material-symbols-outlined text-sm font-bold">add</span>
+        Book New Property
+    </a>
 </div>
 
 <div class="relative z-10">
@@ -119,10 +131,10 @@ $myBookings = $bookingModel->readByClient(Auth::id());
                                       method="POST" 
                                       class="inline-block">
                                     <input type="hidden" name="id" value="<?php echo $booking['id']; ?>">
-                                    <button type="button" 
+                                    <button type="submit" 
                                             class="p-2 border border-slate-200 dark:border-white/10 text-red-500 hover:text-red-700 hover:border-red-650 rounded-none transition duration-300" 
                                             title="Delete Booking"
-                                            onclick="showConfirmModal({title:'Delete Booking',message:'Are you sure you want to delete this booking? This action cannot be undone.',type:'danger',confirmText:'Yes, Delete',onConfirm:()=>{document.getElementById('deleteBookingForm-<?php echo $booking['id']; ?>').submit()}})">
+                                            onclick="return confirm('Are you sure you want to delete this booking?')">
                                         <span class="material-symbols-outlined text-sm leading-none">delete</span>
                                     </button>
                                 </form>

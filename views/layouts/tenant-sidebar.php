@@ -70,9 +70,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="material-symbols-outlined text-base">build</span>
             Maintenance
         </a>
+        <a href="<?php echo BASE_URL; ?>views/tenant/bookings.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase transition-all <?php echo strpos($current_page, 'booking') !== false ? 'bg-white border border-slate-200/80 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-200/50 hover:text-slate-900'; ?>">
+            <span class="material-symbols-outlined text-base">event</span>
+            My Bookings
+        </a>
         
         <div class="pt-4 mt-4 border-t border-slate-200">
-            <a href="<?php echo BASE_URL; ?>views/client/dashboard.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 transition-all">
+            <a href="<?php echo BASE_URL; ?>views/public/properties.php" class="flex items-center gap-3 px-3 py-2 rounded font-display text-[10px] font-bold tracking-widest uppercase text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 transition-all">
                 <span class="material-symbols-outlined text-base">search</span>
                 Browse Listings
             </a>

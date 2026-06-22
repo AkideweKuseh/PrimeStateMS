@@ -91,9 +91,9 @@ $properties = $propertyModel->read();
                                    title="Edit Property">
                                     <span class="material-symbols-outlined text-sm leading-none">edit</span>
                                 </a>
-                                <a href="delete.php?id=<?php echo $property['id']; ?>" 
+                                <a href="javascript:void(0)" 
                                    class="p-2 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-red-650 hover:border-red-650 rounded-none transition duration-300"
-                                   onclick="return confirm('Are you sure you want to delete this property?');"
+                                   onclick="showConfirmModal({title:'Delete Property',message:'Are you sure you want to delete this property? This action is permanent and cannot be reversed.',type:'danger',confirmText:'Yes, Delete',onConfirm:()=>{window.location.href='delete.php?id=<?php echo $property['id']; ?>'}})"
                                    title="Delete Property">
                                     <span class="material-symbols-outlined text-sm leading-none">delete</span>
                                 </a>
